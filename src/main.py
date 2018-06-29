@@ -1,7 +1,7 @@
 import os
 
 import pandas as pd
-import numpy as np
+
 #import xgboost as xgb
 from tqdm import tqdm
 from sklearn.svm import SVC
@@ -25,6 +25,25 @@ from nltk import word_tokenize
 from nltk.corpus import stopwords
 from src.evaluations.logloss import *
 stop_words = stopwords.words('english')
+
+
+
+
+
+
+# SCRIPT FOR TESTS
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # load data
@@ -60,44 +79,6 @@ tfv.fit(list(xtrain) + list(xtest))  # Learn vocabulary and idf from training se
 # list of -> (# of sentence, occurred words number    tf-idf-score)
 xtrain_tfv = tfv.transform(xtrain)  # create sparse matrix with tf-idf probs
 xvalid_tfv = tfv.transform(xtest)
-
-# Fitting a simple Logistic Regression on TFIDF
-log_reg = LogisticRegression(C=1.0)
-log_reg.fit(xtrain_tfv, ytrain)  # execute train for Log regression model
-
-
-predictions = log_reg.predict_proba(xvalid_tfv)
-preds = log_reg.predict(xvalid_tfv)
-print("logloss: %0.3f " % multiclass_logloss(ytest, predictions))
-print("business friendly output: %0.3f" % (np.sum(preds == ytest) / len(ytest)))
-
-# Fitting a simple Naive Bayes on TFIDF
-print("NAIVE BAYES")
-clf = MultinomialNB()
-clf.fit(xtrain_tfv, ytrain)
-predictions = clf.predict_proba(xvalid_tfv)
-print("logloss: %0.3f " % multiclass_logloss(ytest, predictions))
-print("business friendly output: %0.3f" % (np.sum(preds == ytest) / len(ytest)))
-
-
-# WORD COUNT feature
-print("WORD-COUNT + LOG REG")
-ctv = CountVectorizer(analyzer='word',token_pattern=r'\w{1,}',
-            ngram_range=(1, 3), stop_words = 'english')
-# Fitting Count Vectorizer to both training and test sets (semi-supervised learning)
-ctv.fit(list(xtrain) + list(xtest))
-xtrain_ctv =  ctv.transform(xtrain)
-xvalid_ctv = ctv.transform(xtest)
-
-# Fitting a simple Logistic Regression on Counts
-clf = LogisticRegression(C=1.0)
-clf.fit(xtrain_ctv, ytrain)
-preds = clf.predict(xvalid_ctv)
-predictions = clf.predict_proba(xvalid_ctv)
-
-print ("logloss: %0.3f " % multiclass_logloss(ytest, predictions))
-print("business friendly output: %0.3f" % (np.sum(preds == ytest) / len(ytest)))
-
 
 # Apply SVD, I chose 120 components. 120-200 components are good enough for SVM model.
 print("SVM + TFIDF")
