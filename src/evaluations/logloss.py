@@ -1,5 +1,7 @@
 import numpy as np
 
+# multiclass logloss if evaluation metric: given gold data and predicated data
+# referring to this gihub repository as a source: https://github.com/dnouri/nolearn/blob/master/nolearn/lasagne/util.py
 def multiclass_logloss(actual, predicted, eps=1e-15):
     """Multi class version of Logarithmic Loss metric.
     :param actual: Array containing the actual target classes

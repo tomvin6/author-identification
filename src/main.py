@@ -82,7 +82,7 @@ xvalid_tfv = tfv.transform(xtest)
 
 # Apply SVD, I chose 120 components. 120-200 components are good enough for SVM model.
 print("SVM + TFIDF")
-svd = decomposition.TruncatedSVD(n_components=120)
+svd = decomposition.TruncatedSVD(n_components=200) # can we test with more features?! up to 200...
 svd.fit(xtrain_tfv)
 xtrain_svd = svd.transform(xtrain_tfv)
 xvalid_svd = svd.transform(xvalid_tfv)
@@ -97,6 +97,7 @@ xvalid_svd_scl = scl.transform(xvalid_svd)
 clf = SVC(C=1.0, probability=True) # since we need probabilities
 clf.fit(xtrain_svd_scl, ytrain)
 predictions = clf.predict_proba(xvalid_svd_scl)
+predictions_classes = clf.predict(xvalid_svd_scl)
 
 print ("logloss: %0.3f " % multiclass_logloss(ytest, predictions))
-print("business friendly output: %0.3f" % (np.sum(preds == ytest) / len(ytest)))
+print("business friendly output: %0.3f" % (np.sum(predictions_classes == ytest) / len(ytest)))
