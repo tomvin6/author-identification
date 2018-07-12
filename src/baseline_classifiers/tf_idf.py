@@ -3,26 +3,12 @@ from sklearn.linear_model import LogisticRegression
 import numpy as np
 from src.evaluations.logloss import multiclass_logloss
 from src.utils.input_reader import *
+from src.features import tf_idf_features
 
 
 # baseline-classifier
 # Algorithm: logistic regression
 # Features: TF-IDF
-
-
-def get_dfidf_features(xtrain, xtest):
-    # FEATURE CALCULATION
-    tfv = TfidfVectorizer(min_df=3, max_features=None,
-                          strip_accents='unicode', analyzer='word', token_pattern=r'\w{1,}',
-                          ngram_range=(1, 3), use_idf=1, smooth_idf=1, sublinear_tf=1,
-                          stop_words='english')
-    # Fitting TF-IDF to both training and test sets (semi-supervised learning)
-    tfv.fit(list(xtrain) + list(xtest))  # Learn vocabulary and idf from training set.
-    # list of -> (# of sentence, occurred words number    tf-idf-score)
-    xtrain_tfv = tfv.transform(xtrain)  # create sparse matrix with tf-idf probs
-    xvalid_tfv = tfv.transform(xtest)
-    return xtrain_tfv, xvalid_tfv
-
 
 if __name__ == '__main__':
     print("baseline_classifiers classifier")
@@ -34,7 +20,7 @@ if __name__ == '__main__':
     train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
     xtrain, xtest, ytrain, ytest = train_vali_split(train_df)
 
-    xtrain_tfv, xvalid_tfv = get_dfidf_features(xtrain, xtest)
+    xtrain_tfv, xvalid_tfv = tf_idf_features.get_tfidf_word_features(xtrain, xtest)
 
     # Fitting a simple Logistic Regression on TFIDF
     log_reg = LogisticRegression(C=1.0)

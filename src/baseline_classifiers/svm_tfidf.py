@@ -5,10 +5,11 @@ from sklearn.svm import SVC
 
 from src.baseline_classifiers.tf_idf import *
 from src.evaluations.logloss import *
+from src.features import tf_idf_features
 
 
 def get_svd_features(xtrain, xtest):
-    svd = decomposition.TruncatedSVD(n_components=200)  # up to 200 features to prevent long execution time...
+    svd = decomposition.TruncatedSVD(n_components=120)  # up to 200 features to prevent long execution time...
     svd.fit(xtrain)
     xtrain_svd = svd.transform(xtrain)
     xvalid_svd = svd.transform(xtest)
@@ -24,7 +25,7 @@ if __name__ == '__main__':
 
     # TF-IDF features
     print("TF-IDF + LOG REG")
-    xtrain_tfv, xvalid_tfv = get_dfidf_features(xtrain, xtest)
+    xtrain_tfv, xvalid_tfv = tf_idf_features.get_tfidf_word_features(xtrain, xtest)
 
     # Apply SVD, 120-200 components are good enough for SVM model.
     print("SVM + TFIDF")
