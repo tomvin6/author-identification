@@ -1,5 +1,4 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
 import numpy as np
 from src.evaluations.logloss import multiclass_logloss
 from src.utils.input_reader import *
@@ -29,11 +28,13 @@ xtrain_tfv = tfv.transform(xtrain)  # create sparse matrix with tf-idf probs
 xvalid_tfv = tfv.transform(xtest)
 
 # Fitting a simple Logistic Regression on TFIDF
+from sklearn.linear_model import LogisticRegression
 log_reg = LogisticRegression(C=1.0)
-log_reg.fit(xtrain_tfv, ytrain)  # execute train for Log regression model
+log_reg.fit(xtrain_tfv, ytrain)  # learn the correlations between x'es and y'es
 
-# ACCURACY & RESULTS
+# predict the test set results
 predictions = log_reg.predict_proba(xvalid_tfv)
 preds = log_reg.predict(xvalid_tfv)
 print("logloss: %0.3f " % multiclass_logloss(ytest, predictions))
 print("business friendly output: %0.3f" % (np.sum(preds == ytest) / len(ytest)))
+
