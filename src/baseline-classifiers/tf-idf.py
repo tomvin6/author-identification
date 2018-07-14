@@ -1,3 +1,4 @@
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from src.evaluations.logloss import multiclass_logloss
@@ -37,4 +38,3 @@ predictions = log_reg.predict_proba(xvalid_tfv)
 preds = log_reg.predict(xvalid_tfv)
 print("logloss: %0.3f " % multiclass_logloss(ytest, predictions))
 print("business friendly output: %0.3f" % (np.sum(preds == ytest) / len(ytest)))
-

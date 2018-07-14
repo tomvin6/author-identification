@@ -6,7 +6,7 @@ from sklearn.naive_bayes import MultinomialNB
 from src.evaluations.logloss import multiclass_logloss
 from src.utils.input_reader import *
 
-# baseline-classifiers classifier
+# baseline_classifiers classifier
 # Algorithm: logistic regression
 # Features: TF-IDF
 
