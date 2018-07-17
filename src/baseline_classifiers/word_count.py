@@ -12,7 +12,7 @@ from src.utils.input_reader import *
 # Features: TF-IDF
 def get_wc_featur(xtrain, xtest):
     ctv = CountVectorizer(analyzer='word', token_pattern=r'\w{1,}',
-                          ngram_range=(1, 3), stop_words='english')
+                          ngram_range=(1, 3))
 
     ctv.fit(list(xtrain) + list(xtest))
     xtrain_ctv = ctv.transform(xtrain)

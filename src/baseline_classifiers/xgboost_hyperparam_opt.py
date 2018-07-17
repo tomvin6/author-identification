@@ -1,34 +1,22 @@
-import os
-import pandas as pd
-from src.utils.input_reader import *
-from src.baseline_classifiers.tf_idf import *
 from src.baseline_classifiers.svm_tfidf import *
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-
 import xgboost as xgb
-# import xgboost as xgb
-from tqdm import tqdm
-from sklearn.svm import SVC
-from keras.models import Sequential
-from keras.layers.recurrent import LSTM, GRU
-from keras.layers.core import Dense, Activation, Dropout
-from keras.layers.embeddings import Embedding
-from keras.layers.normalization import BatchNormalization
-from keras.utils import np_utils
-from sklearn import preprocessing, decomposition, model_selection, metrics, pipeline
-from sklearn.model_selection import GridSearchCV
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.decomposition import TruncatedSVD
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
-from keras.layers import GlobalMaxPooling1D, Conv1D, MaxPooling1D, Flatten, Bidirectional, SpatialDropout1D
-from keras.preprocessing import sequence, text
-from keras.callbacks import EarlyStopping
-from nltk import word_tokenize
 from nltk.corpus import stopwords
+# import xgboost as xgb
+from sklearn import metrics
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import StratifiedKFold
+
+from src.features import tf_idf_features
+from src.baseline_classifiers.svm_tfidf import *
 from src.evaluations.logloss import *
+
+from src.features import tf_idf_features
+from src.features import naive_bayes_fetures
+from src.features import svd_features
+from src.features import writing_style_features
+import pandas as pd
+
 
 def run_xgboost_random_search():
     stop_words = stopwords.words('english')
@@ -41,7 +29,7 @@ def run_xgboost_random_search():
     train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
     xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
 
-    xtrain_tfv, xvalid_tfv = get_dfidf_features(xtrain, xvalid)
+    xtrain_tfv, xvalid_tfv = tf_idf_features.get_dfidf_features(xtrain, xvalid)
 
     # grid-search model xgboost
     params = {
@@ -73,7 +61,7 @@ def run_xgboost_random_search():
         "random search xgboost business friendly output: %0.3f" % (np.sum(predictions_classes == yvalid) / len(yvalid)))
 
 
-if __name__ == '__main__':
+def run_xgboost_grid_search():
     stop_words = stopwords.words('english')
     print("baseline_classifiers classifier")
     print("Algorithm: XGboost with hyperparam optimization (grid search) ")
@@ -84,19 +72,17 @@ if __name__ == '__main__':
     train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
     xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
 
-    xtrain_tfv, xvalid_tfv = get_dfidf_features(xtrain, xvalid)
+    xtrain_tfv, xvalid_tfv = tf_idf_features.get_dfidf_features(xtrain, xvalid)
 
     # simple xgboost model
     # clf = xgb.XGBClassifier(max_depth=7, n_estimators=200, colsample_bytree=0.8,
     #                         subsample=0.8, nthread=10, learning_rate=0.2)
 
     # test with best params:
-    clf = xgb.XGBClassifier(max_depth=5, n_estimators=200, colsample_bytree=1,gamma=1,min_child_weight=1,
+    clf = xgb.XGBClassifier(max_depth=5, n_estimators=200, colsample_bytree=1, gamma=1, min_child_weight=1,
                             subsample=0.6, nthread=10, learning_rate=0.2)
 
-
     clf.fit(xtrain_tfv.tocsc(), ytrain)
-
 
     predictions = clf.predict_proba(xvalid_tfv.tocsc())
     predictions_classes = clf.predict(xvalid_tfv.tocsc())
@@ -145,3 +131,56 @@ if __name__ == '__main__':
             np.sum(predictions_classes == yvalid) / len(yvalid)))
     print('\n Best parameters:')
     print(grid.best_params_)
+
+
+def test_features():
+    # read input data
+    path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
+    train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
+    xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
+
+    ########### collect features ###########
+    # writing style features
+    xtrain = writing_style_features.get_writing_style_features(xtrain)
+    xvalid = writing_style_features.get_writing_style_features(xvalid)
+    xtrain.keys()
+
+    # TF-IDF
+    xtrain_tfidf_wrd, xtest_tfidf_wrd = tf_idf_features.get_tfidf_word_features(xtrain, xvalid)
+    xtrain_tfidf_chr, xtest_tfidf_chr = tf_idf_features.get_tfidf_char_features(xtrain, xvalid)
+
+    # Naeive-Bayes
+    xtrain_nb_wrd, xtest_nb_wrd = naive_bayes_fetures.get_nb_features(xtrain_tfidf_wrd, ytrain, xtest_tfidf_wrd,
+                                                                      'nb_wrd')
+    xtrain_nb_chr, xtest_nb_chr = naive_bayes_fetures.get_nb_features(xtrain_tfidf_wrd, ytrain, xtest_tfidf_wrd,
+                                                                      'nb_chr')
+    xtrain = pd.concat([xtrain, xtrain_nb_wrd, xtrain_nb_chr], axis=1)
+    xvalid = pd.concat([xvalid, xtest_nb_wrd, xtest_nb_chr], axis=1)
+    del xtrain_nb_wrd, xtest_nb_wrd, xtrain_nb_chr, xtest_nb_chr
+
+    # SVD
+    xtrain_svd_wrd, xtest_svd_wrd = svd_features.get_svd_features(xtrain_tfidf_wrd, xtest_tfidf_wrd, 'svd_wrd_')
+    xtrain_svd_chr, xtest_svd_chr = svd_features.get_svd_features(xtrain_tfidf_chr, xtest_tfidf_chr, 'svd_chr_')
+    xtrain = pd.concat([xtrain, xtrain_svd_wrd, xtrain_svd_chr], axis=1)
+    xvalid = pd.concat([xvalid, xtest_svd_wrd, xtest_svd_chr], axis=1)
+    del xtrain_svd_wrd, xtest_svd_wrd, xtrain_svd_chr, xtest_svd_chr
+
+    ########### build model ###########
+
+    xgb_par = {'min_child_weight': 1, 'eta': 0.1, 'colsample_bytree': 0.7, 'max_depth': 3,
+               'subsample': 0.8, 'lambda': 2.0, 'nthread': -1, 'silent': 1,
+               'eval_metric': "mlogloss", 'objective': 'multi:softprob', 'num_class': 3}
+    xtr = xgb.DMatrix(xtrain.drop(['text'], axis=1), label=ytrain)
+    xvl = xgb.DMatrix(xvalid.drop(['text'], axis=1), label=yvalid)
+
+    watchlist = watchlist = [(xtr, 'train'), (xvl, 'valid')]
+
+    model_1 = xgb.train(xgb_par, xtr, 1000, watchlist, early_stopping_rounds=50,
+                        maximize=False, verbose_eval=40)
+    print('Modeling RMSLE %.5f' % model_1.best_score)
+
+    return
+
+
+if __name__ == '__main__':
+    test_features()
