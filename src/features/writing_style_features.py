@@ -1,17 +1,18 @@
 import string
 
 import nltk
+import string
+import pandas as pd
 from nltk.corpus import stopwords
 
 
 def char_count(sentence):
     """function to return number of chracters """
-    return len(sentence['text'])
+    return len(sentence)
 
 # The count of words in given text
 def word_count(sentence):
-    text = sentence['text']
-    text_splited = text.split(' ')
+    text_splited = sentence.split(' ')
     text_splited = [''.join(c for c in s if c not in string.punctuation) for s in text_splited]
     text_splited = [s for s in text_splited if s]
     word_count = text_splited.__len__()
@@ -20,8 +21,7 @@ def word_count(sentence):
 # Fraction of words that are unique in a given text
 def unique_word_fraction(sentence):
     """function to calculate the fraction of unique words on total words of the text"""
-    text = sentence['text']
-    text_splited = text.split(' ')
+    text_splited = sentence.split(' ')
     text_splited = [''.join(c for c in s if c not in string.punctuation) for s in text_splited]
     text_splited = [s for s in text_splited if s]
     word_count = text_splited.__len__()
@@ -31,16 +31,14 @@ def unique_word_fraction(sentence):
 # Fraction of punctuation present in a given text - Number of puctuations/Total words
 def punctuations_fraction(sentence):
     """functiopn to claculate the fraction of punctuations over total number of characters for a given text """
-    text = sentence['text']
-    char_count = len(text)
-    punctuation_count = len([c for c in text if c in string.punctuation])
+    char_count = len(sentence)
+    punctuation_count = len([c for c in sentence if c in string.punctuation])
     return (punctuation_count / char_count)
 
 # Fraction of Nuons
 def fraction_noun(sentence):
     """function to give us fraction of noun over total words """
-    text = sentence['text']
-    text_splited = text.split(' ')
+    text_splited = sentence.split(' ')
     text_splited = [''.join(c for c in s if c not in string.punctuation) for s in text_splited]
     text_splited = [s for s in text_splited if s]
     word_count = text_splited.__len__()
@@ -51,8 +49,7 @@ def fraction_noun(sentence):
 # Fraction of Adjectives present in a text
 def fraction_adj(sentence):
     """function to give us fraction of adjectives over total words in given text"""
-    text = sentence['text']
-    text_splited = text.split(' ')
+    text_splited = sentence.split(' ')
     text_splited = [''.join(c for c in s if c not in string.punctuation) for s in text_splited]
     text_splited = [s for s in text_splited if s]
     word_count = text_splited.__len__()
@@ -63,8 +60,7 @@ def fraction_adj(sentence):
 # Fraction of verbs present in a text
 def fraction_verbs(sentence):
     """function to give us fraction of verbs over total words in given text"""
-    text = sentence['text']
-    text_splited = text.split(' ')
+    text_splited = sentence.split(' ')
     text_splited = [''.join(c for c in s if c not in string.punctuation) for s in text_splited]
     text_splited = [s for s in text_splited if s]
     word_count = text_splited.__len__()
@@ -83,13 +79,14 @@ def stopwords_count(row):
     return (stopwords_count/word_count)
 
 def get_writing_style_features(train_df):
-    train_df['unique_word_fraction'] = train_df.apply(lambda row: unique_word_fraction(row), axis=1)
-    train_df['punctuations_fraction'] = train_df.apply(lambda row: punctuations_fraction(row), axis=1)
-    train_df['char_count'] = train_df.apply(lambda row: char_count(row), axis=1)
-    train_df['word_count'] = train_df.apply(lambda row: char_count(row), axis=1)
-    train_df['fraction_noun'] = train_df.apply(lambda row: fraction_noun(row), axis=1)
-    train_df['fraction_adj'] = train_df.apply(lambda row: fraction_adj(row), axis=1)
-    train_df['fraction_verbs'] = train_df.apply(lambda row: fraction_verbs(row), axis=1)
-    eng_stopwords = set(stopwords.words("english"))
-    train_df['stopwords_count'] = train_df.apply(lambda row: stopwords_count(row), axis=1)
+    train_df = pd.DataFrame(data=train_df, columns=['text'])
+    train_df.text=train_df.text.astype(str)
+    train_df['unique_word_fraction'] = train_df['text'].apply(lambda row: unique_word_fraction(row))
+    train_df['punctuations_fraction'] = train_df['text'].apply(lambda row: punctuations_fraction(row))
+    train_df['char_count'] = train_df['text'].apply(lambda row: char_count(row))
+    train_df['word_count'] = train_df['text'].apply(lambda row: char_count(row))
+    train_df['fraction_noun'] = train_df['text'].apply(lambda row: fraction_noun(row))
+    train_df['fraction_adj'] = train_df['text'].apply(lambda row: fraction_adj(row))
+    train_df['fraction_verbs'] = train_df['text'].apply(lambda row: fraction_verbs(row))
+
     return train_df
