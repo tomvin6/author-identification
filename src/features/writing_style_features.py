@@ -79,14 +79,14 @@ def stopwords_count(row):
     return (stopwords_count/word_count)
 
 def get_writing_style_features(train_df):
-    train_df = pd.DataFrame(data=train_df, columns=['text'])
-    train_df.text=train_df.text.astype(str)
-    train_df['unique_word_fraction'] = train_df['text'].apply(lambda row: unique_word_fraction(row))
-    train_df['punctuations_fraction'] = train_df['text'].apply(lambda row: punctuations_fraction(row))
-    train_df['char_count'] = train_df['text'].apply(lambda row: char_count(row))
-    train_df['word_count'] = train_df['text'].apply(lambda row: char_count(row))
-    train_df['fraction_noun'] = train_df['text'].apply(lambda row: fraction_noun(row))
-    train_df['fraction_adj'] = train_df['text'].apply(lambda row: fraction_adj(row))
-    train_df['fraction_verbs'] = train_df['text'].apply(lambda row: fraction_verbs(row))
+    train_df_tmp = pd.DataFrame(data=train_df, columns=['text'])
+    train_df_tmp.text=train_df_tmp.text.astype(str)
+    train_df_tmp['unique_word_fraction'] = train_df_tmp['text'].apply(lambda row: unique_word_fraction(row))
+    train_df_tmp['punctuations_fraction'] = train_df_tmp['text'].apply(lambda row: punctuations_fraction(row))
+    train_df_tmp['char_count'] = train_df_tmp['text'].apply(lambda row: char_count(row))
+    train_df_tmp['word_count'] = train_df_tmp['text'].apply(lambda row: char_count(row))
+    train_df_tmp['fraction_noun'] = train_df_tmp['text'].apply(lambda row: fraction_noun(row))
+    train_df_tmp['fraction_adj'] = train_df_tmp['text'].apply(lambda row: fraction_adj(row))
+    train_df_tmp['fraction_verbs'] = train_df_tmp['text'].apply(lambda row: fraction_verbs(row))
 
-    return train_df
+    return train_df_tmp
