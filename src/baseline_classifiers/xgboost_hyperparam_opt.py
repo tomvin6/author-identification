@@ -1,21 +1,19 @@
-from src.baseline_classifiers.svm_tfidf import *
+import pandas as pd
 import xgboost as xgb
-from nltk.corpus import stopwords
 # import xgboost as xgb
 from sklearn import metrics
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import StratifiedKFold
 
-from src.features import tf_idf_features
 from src.baseline_classifiers.svm_tfidf import *
 from src.evaluations.logloss import *
-
-from src.features import tf_idf_features
 from src.features import naive_bayes_fetures
+from src.features import pos_tagging
 from src.features import svd_features
+from src.features import tf_idf_features
 from src.features import writing_style_features
-import pandas as pd
+from src.features import fasttext_features
 
 
 def run_xgboost_random_search():
@@ -133,54 +131,133 @@ def run_xgboost_grid_search():
     print(grid.best_params_)
 
 
-def test_features():
-    # read input data
-    path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
-    train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
-    xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
+# code below produce logloss of 0.363 and accuracy of 0.855
+# including POS features
+def get_xgboost_model():
+    xtrain, xvalid, ytrain, yvalid = test_features()
+    xtrain_postag_txt, xvalid_postag_txt = test_features_pos(xtrain, ytrain, xvalid, yvalid)
 
-    ########### collect features ###########
-    # writing style features
-    xtrain = writing_style_features.get_writing_style_features(xtrain)
-    xvalid = writing_style_features.get_writing_style_features(xvalid)
-    xtrain.keys()
+    xtrain_all = pd.concat([xtrain, xtrain_postag_txt], axis=1)
+    xvalid_all = pd.concat([xvalid, xvalid_postag_txt], axis=1)
 
-    # TF-IDF
-    xtrain_tfidf_wrd, xtest_tfidf_wrd = tf_idf_features.get_tfidf_word_features(xtrain, xvalid)
-    xtrain_tfidf_chr, xtest_tfidf_chr = tf_idf_features.get_tfidf_char_features(xtrain, xvalid)
-
-    # Naeive-Bayes
-    xtrain_nb_wrd, xtest_nb_wrd = naive_bayes_fetures.get_nb_features(xtrain_tfidf_wrd, ytrain, xtest_tfidf_wrd,
-                                                                      'nb_wrd')
-    xtrain_nb_chr, xtest_nb_chr = naive_bayes_fetures.get_nb_features(xtrain_tfidf_wrd, ytrain, xtest_tfidf_wrd,
-                                                                      'nb_chr')
-    xtrain = pd.concat([xtrain, xtrain_nb_wrd, xtrain_nb_chr], axis=1)
-    xvalid = pd.concat([xvalid, xtest_nb_wrd, xtest_nb_chr], axis=1)
-    del xtrain_nb_wrd, xtest_nb_wrd, xtrain_nb_chr, xtest_nb_chr
-
-    # SVD
-    xtrain_svd_wrd, xtest_svd_wrd = svd_features.get_svd_features(xtrain_tfidf_wrd, xtest_tfidf_wrd, 'svd_wrd_')
-    xtrain_svd_chr, xtest_svd_chr = svd_features.get_svd_features(xtrain_tfidf_chr, xtest_tfidf_chr, 'svd_chr_')
-    xtrain = pd.concat([xtrain, xtrain_svd_wrd, xtrain_svd_chr], axis=1)
-    xvalid = pd.concat([xvalid, xtest_svd_wrd, xtest_svd_chr], axis=1)
-    del xtrain_svd_wrd, xtest_svd_wrd, xtrain_svd_chr, xtest_svd_chr
+    del xtrain, xvalid, xtrain_postag_txt, xvalid_postag_txt
 
     ########### build model ###########
 
     xgb_par = {'min_child_weight': 1, 'eta': 0.1, 'colsample_bytree': 0.7, 'max_depth': 3,
                'subsample': 0.8, 'lambda': 2.0, 'nthread': -1, 'silent': 1,
                'eval_metric': "mlogloss", 'objective': 'multi:softprob', 'num_class': 3}
-    xtr = xgb.DMatrix(xtrain.drop(['text'], axis=1), label=ytrain)
-    xvl = xgb.DMatrix(xvalid.drop(['text'], axis=1), label=yvalid)
+    xtr = xgb.DMatrix(xtrain_all.drop(['text'], axis=1), label=ytrain)
+    xvl = xgb.DMatrix(xvalid_all.drop(['text'], axis=1), label=yvalid)
 
-    watchlist = watchlist = [(xtr, 'train'), (xvl, 'valid')]
+    watchlist = [(xtr, 'train'), (xvl, 'valid')]
 
-    model_1 = xgb.train(xgb_par, xtr, 1000, watchlist, early_stopping_rounds=50,
+    model_1 = xgb.train(xgb_par, xtr, 2000, watchlist, early_stopping_rounds=50,
                         maximize=False, verbose_eval=40)
-    print('Modeling RMSLE %.5f' % model_1.best_score)
 
+    print('Modeling RMSLE %.5f' % model_1.best_score)
+    vl_prd = model_1.predict(xvl)
+    vl_prd_cls = np.argmax(vl_prd, axis=1)
+    print("business friendly output: %0.3f" % (np.sum(vl_prd_cls == yvalid) / len(yvalid)))
+
+
+# code below produce logloss of 0.363 and accuracy of 0.855
+# including POS features and fasttext
+def get_xgboost_model_fsx():
     return
 
 
+def test_features_pos(xtrain, ytrain, xvalid, yvalid):
+    xtrain_postag_txt = pos_tagging.pos_tag_df(xtrain)
+    xvalid_postag_txt = pos_tagging.pos_tag_df(xvalid)
+    print("collecting writing style features")
+    xtrain_postag_txt = writing_style_features.get_writing_style_features(train_df=xtrain_postag_txt,
+                                                                          lable_prefix='pos_')
+    xvalid_postag_txt = writing_style_features.get_writing_style_features(train_df=xvalid_postag_txt,
+                                                                          lable_prefix='pos_')
+    print("collecting TF-IDF features")
+    xtrainpos_tfidf_wrd, xtestpos_tfidf_wrd = tf_idf_features.get_tfidf_word_features(xtrain_postag_txt,
+                                                                                      xvalid_postag_txt)
+    xtrainpos_tfidf_chr, xtestpos_tfidf_chr = tf_idf_features.get_tfidf_char_features(xtrain_postag_txt,
+                                                                                      xvalid_postag_txt)
+
+    # Naeive-Bayes
+    print("collecting Naeive-Bayes features")
+    xtrain_nb_wrd, xtest_nb_wrd = naive_bayes_fetures.get_nb_features(xtrainpos_tfidf_wrd, ytrain, xtestpos_tfidf_wrd,
+                                                                      'nb_poswrd')
+
+    xtrain_nb_chr, xtest_nb_chr = naive_bayes_fetures.get_nb_features(xtrainpos_tfidf_chr, ytrain, xtestpos_tfidf_chr,
+                                                                      'nb_poschr')
+    xtrain_postag_txt = pd.concat([xtrain_postag_txt, xtrain_nb_wrd, xtrain_nb_chr], axis=1)
+    xvalid_postag_txt = pd.concat([xvalid_postag_txt, xtest_nb_wrd, xtest_nb_chr], axis=1)
+    del xtrain_nb_wrd, xtest_nb_wrd, xtrain_nb_chr, xtest_nb_chr
+
+    print("collecting SVD features")
+    xtrain_svd_wrd, xtest_svd_wrd = svd_features.get_svd_features(xtrainpos_tfidf_wrd, xtestpos_tfidf_wrd,
+                                                                  'svd_poswrd_')
+    xtrain_svd_chr, xtest_svd_chr = svd_features.get_svd_features(xtrainpos_tfidf_chr, xtestpos_tfidf_chr,
+                                                                  'svd_poschr_')
+    xtrain_postag_txt = pd.concat([xtrain_postag_txt, xtrain_svd_wrd, xtrain_svd_chr], axis=1)
+    xvalid_postag_txt = pd.concat([xvalid_postag_txt, xtest_svd_wrd, xtest_svd_chr], axis=1)
+    del xtrainpos_tfidf_wrd, xtestpos_tfidf_wrd, xtrain_svd_chr, xtest_svd_chr
+
+    return xtrain_postag_txt.drop(['text'], axis=1), xvalid_postag_txt.drop(['text'], axis=1)
+
+
+def test_features():
+    # read input data
+    path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
+    train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
+    xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
+
+    print("train shape:{}", xtrain.shape)
+    print("validation shape:{}", xvalid.shape)
+    ########### collect features ###########
+    # writing style features
+    print("collecting writing style features")
+    xtrain = writing_style_features.get_writing_style_features(xtrain)
+    xvalid = writing_style_features.get_writing_style_features(xvalid)
+
+    xtrain = xtrain.reset_index(drop=True)
+    xvalid = xvalid.reset_index(drop=True)
+
+    # TF-IDF
+    print("collecting TF=IDF features")
+    xtrain_tfidf_wrd, xtest_tfidf_wrd = tf_idf_features.get_tfidf_word_features(xtrain, xvalid)
+    xtrain_tfidf_chr, xtest_tfidf_chr = tf_idf_features.get_tfidf_char_features(xtrain, xvalid)
+
+    # Naeive-Bayes
+    print("collecting Naeive-Bayes features")
+
+    xtrain_nb_wrd, xtest_nb_wrd = naive_bayes_fetures.get_nb_features(xtrain_tfidf_wrd, ytrain, xtest_tfidf_wrd,
+                                                                      'nb_wrd')
+    xtrain_nb_chr, xtest_nb_chr = naive_bayes_fetures.get_nb_features(xtrain_tfidf_chr, ytrain, xtest_tfidf_chr,
+                                                                      'nb_chr')
+    xtrain = pd.concat([xtrain, xtrain_nb_wrd, xtrain_nb_chr], axis=1)
+    xvalid = pd.concat([xvalid, xtest_nb_wrd, xtest_nb_chr], axis=1)
+    del xtrain_nb_wrd, xtest_nb_wrd, xtrain_nb_chr, xtest_nb_chr
+
+
+
+    # SVD
+    print("collecting SVD features")
+    xtrain_svd_wrd, xtest_svd_wrd = svd_features.get_svd_features(xtrain_tfidf_wrd, xtest_tfidf_wrd, 'svd_wrd_')
+    xtrain_svd_chr, xtest_svd_chr = svd_features.get_svd_features(xtrain_tfidf_chr, xtest_tfidf_chr, 'svd_chr_')
+    xtrain = pd.concat([xtrain, xtrain_svd_wrd, xtrain_svd_chr], axis=1)
+    xvalid = pd.concat([xvalid, xtest_svd_wrd, xtest_svd_chr], axis=1)
+    del xtrain_svd_wrd, xtest_svd_wrd, xtrain_svd_chr, xtest_svd_chr
+
+    # fast-text
+    print("collecting fast-text features")
+    xtrain_fsx, xtest_fsx = fasttext_features.get_fasttext_features(xtrain, ytrain, xvalid, yvalid,
+                                                                    lbl_prefix='fastext_')
+
+    xtrain = pd.concat([xtrain, xtrain_fsx], axis=1)
+    xvalid = pd.concat([xvalid, xtest_fsx], axis=1)
+    del xtrain_fsx, xtest_fsx
+
+    return xtrain, xvalid, ytrain, yvalid
+
+
 if __name__ == '__main__':
-    test_features()
+    get_xgboost_model()
