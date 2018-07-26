@@ -20,6 +20,7 @@ def load_data_sets(train_path,test_path,sample_path,encode_lables=True):
     if encode_lables:
         lbl_enc = preprocessing.LabelEncoder()
         train_df.author_label = lbl_enc.fit_transform(train_df.author.values)
+        train_df['author_label'] = lbl_enc.fit_transform(train_df.author.values)
     return train_df,test_df,sample_df
 
 

@@ -12,8 +12,9 @@ from sklearn.svm import LinearSVC
 from tqdm import tqdm
 import os
 
-from src.evaluations.logloss import multiclass_logloss, multiclass_logloss_same_shape
+from src.evaluations.logloss import multiclass_logloss
 from src.utils.input_reader import train_vali_split, load_data_sets
+from src.advanced_classifiers.columnSelectors import NumberSelector, TextSelector,DummySelector
 
 # baseline_classifiers classifier
 # Algorithm: logistic regression
