@@ -56,7 +56,6 @@ def transform_raw_features(X_train):
                 ])
     chr_len.fit_transform(X_train)
 
-
     chr_len = Pipeline([
                     ('selector', NumberSelector(key='char_count')),
                      ('standard', StandardScaler())

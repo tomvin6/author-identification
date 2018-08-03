@@ -1,29 +1,22 @@
-from nltk import word_tokenize
-from sklearn.decomposition import TruncatedSVD
-from sklearn.feature_extraction import stop_words
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.grid_search import GridSearchCV
-from sklearn.linear_model import LogisticRegression
-from sklearn import metrics, preprocessing, decomposition, model_selection, metrics, pipeline
-import numpy as np
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
-from sklearn.svm import LinearSVC
-from tqdm import tqdm
-import os
+from src.features.fasttext_features import *
+from src.utils.input_reader import *
 
-from src.evaluations.logloss import multiclass_logloss
-from src.utils.input_reader import train_vali_split, load_data_sets
-from src.advanced_classifiers.columnSelectors import NumberSelector, TextSelector,DummySelector
-
-# baseline_classifiers classifier
-# Algorithm: logistic regression
-# Features: TF-IDF
 
 print("advance classifier")
-print("Algorithm: Log regression")
-print("Pre processing: removal of english stop words turned off, lowercase turn off")
-print("Features: Word-count")
+print("Algorithm: fast text")
+print("None")
+
+
+def convert_tabs_sep(path_prefix):
+    replace_tabs_at_front(path_prefix + "train.txt", "beck-s", "beck-s###")
+    replace_tabs_at_front(path_prefix + "train.txt", "farmer-d", "farmer-d###")
+    replace_tabs_at_front(path_prefix + "train.txt", "kaminski-v", "kaminski-v###")
+    replace_tabs_at_front(path_prefix + "test.txt", "beck-s", "beck-s###")
+    replace_tabs_at_front(path_prefix + "test.txt", "farmer-d", "farmer-d###")
+    replace_tabs_at_front(path_prefix + "test.txt", "kaminski-v", "kaminski-v###")
+    replace_tabs_at_front(path_prefix + "validation.txt", "kaminski-v", "kaminski-v###")
+    replace_tabs_at_front(path_prefix + "validation.txt", "farmer-d", "farmer-d###")
+    replace_tabs_at_front(path_prefix + "validation.txt", "beck-s", "beck-s###")
 
 # LOAD DATA
 path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
