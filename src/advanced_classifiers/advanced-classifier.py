@@ -1,7 +1,9 @@
+from PIL import Image
+
 from src.features.fasttext_features import *
 from src.utils.input_reader import *
 
-
+im = Image.open("grayscale.jpg")
 print("advance classifier")
 print("Algorithm: fast text")
 print("None")

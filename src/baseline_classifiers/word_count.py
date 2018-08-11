@@ -19,6 +19,14 @@ def get_wc_featur(xtrain, xtest):
     xvalid_ctv = ctv.transform(xtest)
     return xtrain_ctv, xvalid_ctv
 
+def get_wc_featur_with_max_features(xtrain, xtest, max_features=200):
+    ctv = CountVectorizer(analyzer='word', token_pattern=r'\w{1,}',
+                          ngram_range=(1, 3), max_features=max_features)
+
+    ctv.fit(list(xtrain) + list(xtest))
+    xtrain_ctv = ctv.transform(xtrain)
+    xvalid_ctv = ctv.transform(xtest)
+    return xtrain_ctv, xvalid_ctv, ctv
 
 if __name__ == '__main__':
     print("baseline_classifiers classifier")
