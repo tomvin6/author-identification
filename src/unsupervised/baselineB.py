@@ -46,10 +46,10 @@ if __name__ == '__main__':
     train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
 
     # Model parameters
-    feature_size = 140
+    feature_size = 150
     epochs_number = 80
-    model_data_name = 'doc2vec_fsize[' + str(feature_size) + ']_clean[true]_epoch[' + str(epochs_number) + '].model'
     clean = True
+    model_data_name = 'doc2vec_fsize[' + str(feature_size) + ']_clean[' + str(clean) + ']_epoch[' + str(epochs_number) + '].model'
 
     # Pre process data
     if clean:
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     # define number of clusters
     number_of_clusters = 3
 
-    # Plot data in 2D using PCA (DIM reduction):
+    # Build plot of the data in 2D using PCA (DIM reduction):
     from sklearn.decomposition import PCA as sklearnPCA
     pca = sklearnPCA(n_components=2)  # 2-dimensional PCA
     x_transformed_2D = pd.DataFrame(pca.fit_transform(X))
@@ -91,13 +91,14 @@ if __name__ == '__main__':
     plt.xlabel('X axis label')
     plt.ylabel('Y axis label')
     plt.legend()
-    plt.show()  # need to manually close window
 
-    # Apply K-MEANS algorithm with 3 clusters
+    # Apply K-MEANS algorithm with 3 clusters: plot data with centroids
     kmeans_model = KMeans(number_of_clusters, init='k-means++', max_iter= 300, n_init=10, random_state=0)
     cluster_labels = pd.DataFrame(kmeans_model.fit_predict(X))
     centroids = kmeans_model.cluster_centers_
     centroidpoint = pca.transform(centroids)
+    plt.scatter(centroidpoint[:, 0], centroidpoint[:, 1], marker='^', s=150, c='#000000')
+    plt.show()  # need to manually close window
     # cluster_labels.insert((cluster_labels.shape[1]), 'author', ytrain)
 
     perm = Permutator()
@@ -109,3 +110,19 @@ if __name__ == '__main__':
         perm.set_next_permutation()
 
     print("Best score for clustering (unsupervised) " + str(max(scores)))
+
+    # apply Kmeans on transformed data
+    pca2 = sklearnPCA(n_components=6)  # 2-dimensional PCA
+    x_transformed_xD = pd.DataFrame(pca2.fit_transform(X))
+    reducted_kmeans_model = KMeans(number_of_clusters, init='k-means++', max_iter=300, n_init=10, random_state=0)
+    reducted_cluster_labels = pd.DataFrame(reducted_kmeans_model.fit_predict(x_transformed_xD))
+
+    reducted_perm = Permutator()
+    reducted_scores = list()
+    while reducted_perm.has_more_permurations():
+        permuted_clusters_labels = reducted_cluster_labels[0].map(reducted_perm.get_permuration_series())
+        reducted_permutation_score = metrics.accuracy_score(permuted_clusters_labels, pd.Series(train_df.author_label))
+        reducted_scores.append(reducted_permutation_score)
+        reducted_perm.set_next_permutation()
+
+    print("Best reducted score for clustering (unsupervised) " + str(max(reducted_scores)))
