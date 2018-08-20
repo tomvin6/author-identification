@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from src.baseline_classifiers.word_count import get_wc_featur_with_max_features
-from src.utils.input_reader import load_data_sets, train_vali_split
+from src.utils.input_reader import *
 from sklearn.cluster import KMeans
 from sklearn import metrics
 

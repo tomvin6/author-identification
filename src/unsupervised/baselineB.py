@@ -3,15 +3,13 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from src.baseline_classifiers.word_count import get_wc_featur_with_max_features
 from src.utils.input_reader import load_data_sets, train_vali_split
 from sklearn.cluster import KMeans
 from sklearn import metrics
 import gensim
 from nltk import RegexpTokenizer
 from nltk.corpus import stopwords
-from os import listdir
-from os.path import isfile, join
+
 
 from src.utils.permutator import Permutator
 
@@ -111,7 +109,7 @@ if __name__ == '__main__':
 
     print("Best score for clustering (unsupervised) " + str(max(scores)))
 
-    # apply Kmeans on transformed data
+    # Apply Kmeans on transformed data (after PCA with 6 dimentions)
     pca2 = sklearnPCA(n_components=6)  # 2-dimensional PCA
     x_transformed_xD = pd.DataFrame(pca2.fit_transform(X))
     reducted_kmeans_model = KMeans(number_of_clusters, init='k-means++', max_iter=300, n_init=10, random_state=0)

@@ -23,6 +23,22 @@ def load_data_sets(train_path,test_path,sample_path,encode_lables=True):
         train_df['author_label'] = lbl_enc.fit_transform(train_df.author.values)
     return train_df,test_df,sample_df
 
+
+def load_50_authors_data_sets_to_dict():
+    root = rootdir = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
+    labels = []
+    docs = []
+    for r, dirs, files in os.walk(root):
+        for file in files:
+            with open(os.path.join(r, file), "r") as f:
+                docs.append(f.read())
+            labels.append(r.replace(root, ''))
+    return dict([('docs', docs), ('labels', labels)])
+
+
+
+
+
 def load_txt_data_sets(train_path,test_path,sample_path,encode_lables=True):
     if train_path is None:
         train_path=  "input" + os.sep + "train.csv"
