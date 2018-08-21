@@ -135,7 +135,7 @@ def run_xgboost_grid_search():
 # including POS features
 def get_xgboost_model():
     xtrain, xvalid, ytrain, yvalid = test_features()
-    xtrain_postag_txt, xvalid_postag_txt = test_features_pos(xtrain, ytrain, xvalid, yvalid)
+    xtrain_postag_txt, xvalid_postag_txt = test_features_pos_new(xtrain, ytrain, xvalid, yvalid)
 
     xtrain_all = pd.concat([xtrain, xtrain_postag_txt], axis=1)
     xvalid_all = pd.concat([xvalid, xvalid_postag_txt], axis=1)
@@ -238,8 +238,8 @@ def test_features():
     del xtrain_nb_wrd, xtest_nb_wrd, xtrain_nb_chr, xtest_nb_chr
 
 
-
     # SVD
+    # dimentionality reduction of TF-IDS features
     print("collecting SVD features")
     xtrain_svd_wrd, xtest_svd_wrd = svd_features.get_svd_features(xtrain_tfidf_wrd, xtest_tfidf_wrd, 'svd_wrd_')
     xtrain_svd_chr, xtest_svd_chr = svd_features.get_svd_features(xtrain_tfidf_chr, xtest_tfidf_chr, 'svd_chr_')
@@ -258,6 +258,40 @@ def test_features():
 
     return xtrain, xvalid, ytrain, yvalid
 
+
+def test_features_pos_new(xtrain, ytrain, xvalid, yvalid):
+    xtrain_postag_txt = pos_tagging.pos_tag_df(xtrain)
+    xvalid_postag_txt = pos_tagging.pos_tag_df(xvalid)
+
+    print("collecting TF-IDF features")
+    xtrainpos_tfidf_wrd, xtestpos_tfidf_wrd = tf_idf_features.get_tfidf_word_features(xtrain_postag_txt,
+                                                                                      xvalid_postag_txt)
+
+    # Naeive-Bayes
+    print("collecting Naeive-Bayes features")
+    xtrain_nb_wrd, xtest_nb_wrd = naive_bayes_fetures.get_nb_features(xtrainpos_tfidf_wrd, ytrain, xtestpos_tfidf_wrd,
+                                                                      'nb_poswrd')
+    xtrain_postag_txt = pd.concat([xtrain_postag_txt, xtrain_nb_wrd], axis=1)
+    xvalid_postag_txt = pd.concat([xvalid_postag_txt, xtest_nb_wrd], axis=1)
+    del xtrain_nb_wrd, xtest_nb_wrd
+
+    print("collecting SVD features")
+    xtrain_svd_wrd, xtest_svd_wrd = svd_features.get_svd_features(xtrainpos_tfidf_wrd, xtestpos_tfidf_wrd,
+                                                                  'svd_poswrd_')
+    xtrain_postag_txt = pd.concat([xtrain_postag_txt, xtrain_svd_wrd], axis=1)
+    xvalid_postag_txt = pd.concat([xvalid_postag_txt, xtest_svd_wrd], axis=1)
+    del xtrainpos_tfidf_wrd, xtestpos_tfidf_wrd
+
+    # fast-text
+    print("collecting fast-text features")
+    xtrain_fsx, xtest_fsx = fasttext_features.get_fasttext_features(xtrain_postag_txt, ytrain, xvalid_postag_txt, yvalid,
+                                                                    lbl_prefix='fastext_pos')
+
+    xtrain_postag_txt = pd.concat([xtrain_postag_txt, xtrain_fsx], axis=1)
+    xvalid_postag_txt = pd.concat([xvalid_postag_txt, xtest_fsx], axis=1)
+    del xtrain_fsx, xtest_fsx
+
+    return xtrain_postag_txt.drop(['text'], axis=1), xvalid_postag_txt.drop(['text'], axis=1)
 
 if __name__ == '__main__':
     get_xgboost_model()

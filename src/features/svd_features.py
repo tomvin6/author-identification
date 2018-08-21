@@ -21,7 +21,7 @@ def get_svd_char_features(trainx, testx):
 
 def get_svd_features(trainx, testx, lbl_prefix):
     x_train_test = vstack((trainx, testx), format='csr')
-    n_comp = 400
+    n_comp = 200
     svd_obj = TruncatedSVD(n_components=n_comp, algorithm='arpack')
     svd_obj.fit(x_train_test)
     train_svd_chr = pd.DataFrame(svd_obj.transform(trainx))

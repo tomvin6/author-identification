@@ -68,15 +68,15 @@ def fraction_verbs(sentence):
     verbs_count = len([w for w in pos_list if w[1] in ('VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ')])
     return (verbs_count / word_count)
 
-def stopwords_count(row):
-    """ Number of stopwords fraction in a text"""
-    text = row['text'].lower()
-    text_splited = text.split(' ')
-    text_splited = [''.join(c for c in s if c not in string.punctuation) for s in text_splited]
-    text_splited = [s for s in text_splited if s]
-    word_count = text_splited.__len__()
-    stopwords_count = len([w for w in text_splited if w in eng_stopwords])
-    return (stopwords_count/word_count)
+# def stopwords_count(row):
+#     """ Number of stopwords fraction in a text"""
+#     text = row['text'].lower()
+#     text_splited = text.split(' ')
+#     text_splited = [''.join(c for c in s if c not in string.punctuation) for s in text_splited]
+#     text_splited = [s for s in text_splited if s]
+#     word_count = text_splited.__len__()
+#     stopwords_count = len([w for w in text_splited if w in eng_stopwords])
+#     return (stopwords_count/word_count)
 
 def get_writing_style_features(train_df):
     train_df_tmp = pd.DataFrame(data=train_df, columns=['text'])
