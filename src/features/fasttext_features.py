@@ -92,15 +92,15 @@ def get_fasttext_features1(docstrain, ytrain, docsvalid, yvalid, input_dim=0):
                      epochs=16,
                      callbacks=[EarlyStopping(patience=4, monitor='val_loss')])
     model.predict(docsvalid)
+    # CHANGED hist TO HIST.MODEL
+    predictions = hist.model.predict_proba(docsvalid)
+    predictions_classes = hist.model.predict_classes(docsvalid)
 
-    predictions = hist.predict_proba(docsvalid)
-    predictions_classes = hist.predict_classes(docsvalid)
 
     print("rf grid xgboost (tf-ifd,svd) logloss: %0.3f " % metrics.log_loss(yvalid, predictions))
-    print("rf grid xgboost (tf-ifd,svd) business friendly output: %0.3f" % (
-            np.sum(predictions_classes == yvalid) / len(yvalid)))
+    print("rf grid xgboost (tf-ifd,svd) business friendly output: %0.3f" % (metrics.accuracy_score(predictions_classes, yvalid)))
 
-    return predictions
+    return predictions, predictions_classes
 
 
 def test_fasttest_cls1():
