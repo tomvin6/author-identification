@@ -33,10 +33,13 @@ def load_50_authors_data_sets_to_dict():
             with open(os.path.join(r, file), "r") as f:
                 docs.append(f.read())
             labels.append(r.replace(root, ''))
-    return dict([('docs', docs), ('labels', labels)])
-
-
-
+    data_dict = dict([('text', docs), ('labels', labels)])
+    df = pd.DataFrame(data_dict)
+    # encode labels
+    le = preprocessing.LabelEncoder()
+    df['labels'] = le.fit_transform(df.labels)
+    df['id'] = df.index
+    return df
 
 
 def load_txt_data_sets(train_path,test_path,sample_path,encode_lables=True):
