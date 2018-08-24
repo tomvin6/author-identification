@@ -25,7 +25,8 @@ def load_data_sets(train_path,test_path,sample_path,encode_lables=True):
 
 
 def load_50_authors_data_sets_to_dict():
-    root = rootdir = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
+    print("Input data: 50 Authors data-set")
+    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
     labels = []
     docs = []
     for r, dirs, files in os.walk(root):

@@ -1,7 +1,7 @@
 from sklearn.cluster import KMeans
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.decomposition import PCA as sklearnPCA
-
+from src.evaluations.logloss import *
 from src.selectors.average_words_selector import AverageWordsSelector
 from src.selectors.item_selector import ItemSelector
 from src.utils.input_reader import *
@@ -20,6 +20,7 @@ if __name__ == '__main__':
     print("Features: d2v, average word count")
 
     df = load_50_authors_data_sets_to_dict()
+    labels = df['labels']
 
     # run doc2vec, transform for 2Dim vector for each document
     # select each coordinate as a feature for clustering algorithm
@@ -44,11 +45,15 @@ if __name__ == '__main__':
             ("d2vB", doc2vec_selectorB)
     ])
 
+    print("Running pipelines to calculate model features \n")
     combined_features = combined_features.fit_transform(df)
 
-    # Run K-means on combined features
-    kmeans_model = KMeans(number_of_clusters, init='k-means++',
+    print("Running K-means on combined features \n")
+    km = KMeans(number_of_clusters, init='k-means++',
            max_iter=300, n_init=10, random_state=0)
-    cluster_labels = pd.DataFrame(kmeans_model.fit_predict(combined_features))
+    cluster_labels = pd.DataFrame(km.fit_predict(combined_features, y=labels))
 
-
+    print("scores:")
+    print("Purity score: %0.3f" % purity_score(labels, cluster_labels))
+    print("Normalize Mutual score: %0.3f" % normalized_mutual_score(labels, cluster_labels))
+    print("\n")
