@@ -79,7 +79,7 @@ if __name__ == '__main__':
     plt.show()  # need to manually close window
 
     # Run permutator to get best permutation
-    perm = Permutator()
+    perm = Permutator(number_of_clusters)
     scores = list()
     while perm.has_more_permurations():
         permuted_clusters_labels = cluster_labels[0].map(perm.get_permuration_series())

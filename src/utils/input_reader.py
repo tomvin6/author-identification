@@ -25,7 +25,8 @@ def load_data_sets(train_path,test_path,sample_path,encode_lables=True):
 
 
 def load_50_authors_data_sets_to_dict():
-    root = rootdir = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
+    print("Input data: 50 Authors data-set")
+    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
     labels = []
     docs = []
     for r, dirs, files in os.walk(root):
@@ -33,10 +34,13 @@ def load_50_authors_data_sets_to_dict():
             with open(os.path.join(r, file), "r") as f:
                 docs.append(f.read())
             labels.append(r.replace(root, ''))
-    return dict([('docs', docs), ('labels', labels)])
-
-
-
+    data_dict = dict([('text', docs), ('labels', labels)])
+    df = pd.DataFrame(data_dict)
+    # encode labels
+    le = preprocessing.LabelEncoder()
+    df['labels'] = le.fit_transform(df.labels)
+    df['id'] = df.index
+    return df
 
 
 def load_txt_data_sets(train_path,test_path,sample_path,encode_lables=True):
