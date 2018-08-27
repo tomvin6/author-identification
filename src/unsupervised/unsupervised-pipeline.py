@@ -34,13 +34,29 @@ if __name__ == '__main__':
     doc2vec_selectorB = Pipeline([
                         ("itemB", CustomItemSelector(doc2vec2Dim, 1))])
 
-    tf_idf_pipeline = Pipeline([
+    tf_idf_3_grams = Pipeline([
                 ('sel', ItemSelector(key='text')),
-                ('tf', TfidfVectorizer(max_features=1500,
-                          strip_accents='unicode', analyzer='word', token_pattern=r'\w{1,}',
+                ('tf', TfidfVectorizer(max_features=1000,
+                          strip_accents='unicode', token_pattern=r'\w{1,}',
                           ngram_range=(1, 3), use_idf=1, smooth_idf=1, sublinear_tf=1,
                           stop_words='english')),
-                ('svd', TruncatedSVD(n_components=50))
+                ('svd', TruncatedSVD(n_components=20))
+            ])
+    tf_idf_4_grams = Pipeline([
+                ('sel', ItemSelector(key='text')),
+                ('tf', TfidfVectorizer(max_features=1200,
+                          strip_accents='unicode', token_pattern=r'\w{1,}',
+                          ngram_range=(1, 4), use_idf=1, smooth_idf=1, sublinear_tf=1,
+                          stop_words='english')),
+                ('svd', TruncatedSVD(n_components=20))
+            ])
+    tf_idf_5_grams = Pipeline([
+                ('sel', ItemSelector(key='text')),
+                ('tf', TfidfVectorizer(max_features=1500,
+                          strip_accents='unicode', token_pattern=r'\w{1,}',
+                          ngram_range=(1, 5), use_idf=1, smooth_idf=1, sublinear_tf=1,
+                          stop_words='english')),
+                ('svd', TruncatedSVD(n_components=20))
             ])
 
     # average word count feature extraction pipeline
@@ -53,7 +69,9 @@ if __name__ == '__main__':
             ('word_count', word_count_pipeline),
             ("d2vA", doc2vec_selectorA),
             ("d2vB", doc2vec_selectorB),
-            ("tfidf", tf_idf_pipeline)
+            ("tfidf3", tf_idf_3_grams),
+            ("tfidf4", tf_idf_4_grams),
+            ("tfidf5", tf_idf_5_grams)
     ])
 
     print("Running pipelines to calculate model features \n")
