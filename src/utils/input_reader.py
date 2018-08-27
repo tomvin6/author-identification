@@ -43,6 +43,31 @@ def load_50_authors_data_sets_to_dict():
     return df
 
 
+def load_50_authors_data_sentences_to_dict():
+    print("Input data: 50 Authors data-set")
+    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
+    labels = []
+    docs = []
+    for r, dirs, files in os.walk(root):
+        for file in files:
+            with open(os.path.join(r, file), "r") as f:
+                author_text=f.read()
+                author_sentences=author_text.split(".\n")
+                for sentence in author_sentences:
+                    sentence=sentence.replace('\n','')
+                    # print(sentence)
+                    if sentence.__len__()>0 and sentence.count(' ')>1:
+                        docs.append(sentence)
+                        labels.append(r.replace(root, ''))
+    data_dict = dict([('text', docs), ('author_label', labels)])
+    df = pd.DataFrame(data_dict)
+    # encode labels
+    le = preprocessing.LabelEncoder()
+    df['author_label'] = le.fit_transform(df.author_label)
+    df['id'] = df.index
+    return df
+
+
 def load_txt_data_sets(train_path,test_path,sample_path,encode_lables=True):
     if train_path is None:
         train_path=  "input" + os.sep + "train.csv"
