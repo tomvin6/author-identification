@@ -1,9 +1,10 @@
 from sklearn.cluster import KMeans
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.decomposition import PCA as sklearnPCA
+from sklearn.decomposition import PCA as sklearnPCA, TruncatedSVD
 from src.evaluations.logloss import *
 from src.selectors.average_words_selector import AverageWordsSelector
-from src.selectors.item_selector import ItemSelector
+from src.selectors.item_selector import *
 from src.utils.input_reader import *
 from src.selectors.doc2vec_selector import *
 
@@ -29,9 +30,18 @@ if __name__ == '__main__':
                         ("pca", sklearnPCA(n_components=2))])
     doc2vec2Dim = doc2vec_pipeline.fit_transform(df)
     doc2vec_selectorA = Pipeline([
-                        ("itemA", ItemSelector(doc2vec2Dim, 0))])
+                        ("itemA", CustomItemSelector(doc2vec2Dim, 0))])
     doc2vec_selectorB = Pipeline([
-                        ("itemB", ItemSelector(doc2vec2Dim, 1))])
+                        ("itemB", CustomItemSelector(doc2vec2Dim, 1))])
+
+    tf_idf_pipeline = Pipeline([
+                ('sel', ItemSelector(key='text')),
+                ('tf', TfidfVectorizer(max_features=1500,
+                          strip_accents='unicode', analyzer='word', token_pattern=r'\w{1,}',
+                          ngram_range=(1, 3), use_idf=1, smooth_idf=1, sublinear_tf=1,
+                          stop_words='english')),
+                ('svd', TruncatedSVD(n_components=50))
+            ])
 
     # average word count feature extraction pipeline
     word_count_pipeline = Pipeline([
@@ -42,7 +52,8 @@ if __name__ == '__main__':
     combined_features = FeatureUnion([
             ('word_count', word_count_pipeline),
             ("d2vA", doc2vec_selectorA),
-            ("d2vB", doc2vec_selectorB)
+            ("d2vB", doc2vec_selectorB),
+            ("tfidf", tf_idf_pipeline)
     ])
 
     print("Running pipelines to calculate model features \n")
