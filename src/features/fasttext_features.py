@@ -28,8 +28,8 @@ def preprocess(text):
     return text
 
 
-def create_docs(data, n_gram_max=2, tokenizer=None, train_mode=True):
-    df = pd.DataFrame(data=data, columns=['text'])
+def create_docs(data, n_gram_max=2, tokenizer=None, train_mode=True, referance_col='text'):
+    df = pd.DataFrame(data=data, columns=[referance_col])
     rare_train_words = []
 
     # create N grams + separate punctuation from words
@@ -41,7 +41,7 @@ def create_docs(data, n_gram_max=2, tokenizer=None, train_mode=True):
         return q + ngrams
 
     docs = []
-    for doc in df.text:
+    for doc in df[referance_col]:
         doc = preprocess(doc).split()
         docs.append(' '.join(add_ngram(doc, n_gram_max)))
 
@@ -69,6 +69,7 @@ def create_docs(data, n_gram_max=2, tokenizer=None, train_mode=True):
 
 # keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 # keras.optimizers.SGD(lr=0.01, momentum=0.0, decay=0.0, nesterov=False)
+# embedding_dims- change to 32?!
 def create_model(input_dim, embedding_dims=20, optimizer='adam'):
     model = Sequential()
     model.add(Embedding(input_dim=input_dim, output_dim=embedding_dims))
@@ -97,8 +98,8 @@ def get_fasttext_features1(docstrain, ytrain, docsvalid, yvalid, input_dim=0):
     predictions_classes = hist.model.predict_classes(docsvalid)
 
 
-    print("rf grid xgboost (tf-ifd,svd) logloss: %0.3f " % metrics.log_loss(yvalid, predictions))
-    print("rf grid xgboost (tf-ifd,svd) business friendly output: %0.3f" % (metrics.accuracy_score(predictions_classes, yvalid)))
+    print("logloss: %0.3f " % metrics.log_loss(yvalid, predictions))
+    print("accuracy: %0.3f" % (metrics.accuracy_score(predictions_classes, yvalid)))
 
     return predictions, predictions_classes
 
@@ -114,16 +115,16 @@ def test_fasttest_cls1():
     get_fasttext_features1(xtrain, ytrain, xvalid, yvalid, np.max(docs) + 1)
 
 
-def get_fasttext_features(xtrain, ytrain, xvalid, yvalid, lbl_prefix='fastext_'):
+def get_fasttext_features(xtrain, ytrain, xvalid, yvalid, referance_col='text', lbl_prefix='fastext_'):
     cv_scores = []
     pred_full_test = 0
     pred_train = np.zeros([xtrain.shape[0], len(set(ytrain))])
 
     fsx = fasttext.fasttext_classifier()
-    docstrain, tokenizer = create_docs(xtrain['text'])
+    docstrain, tokenizer = create_docs(data=xtrain[referance_col],referance_col=referance_col)
     fsx.set_tokenizer(tokenizer)
 
-    docstest = create_docs(xvalid['text'], tokenizer=fsx.tokenizer, train_mode=False)
+    docstest = create_docs(data=xvalid[referance_col], tokenizer=fsx.tokenizer, train_mode=False,referance_col=referance_col)
     input_dim = np.max(docstrain) + 1
     fsx.create_model(input_dim)
 
