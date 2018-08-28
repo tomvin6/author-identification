@@ -4,7 +4,7 @@ from sklearn import preprocessing, decomposition
 from sklearn.svm import SVC
 
 from src.baseline_classifiers.tf_idf import *
-from src.evaluations.logloss import *
+from src.evaluations.evaluations import *
 from src.features import tf_idf_features
 
 

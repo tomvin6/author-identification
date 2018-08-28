@@ -1,7 +1,7 @@
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-from src.evaluations.logloss import multiclass_logloss
+from src.evaluations.evaluations import multiclass_logloss
 from src.utils.input_reader import *
 
 # baseline-classifier

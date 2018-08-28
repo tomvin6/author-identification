@@ -3,7 +3,7 @@ from sklearn.linear_model import LogisticRegression
 import numpy as np
 from sklearn.naive_bayes import MultinomialNB
 
-from src.evaluations.logloss import multiclass_logloss
+from src.evaluations.evaluations import multiclass_logloss
 from src.utils.input_reader import *
 
 # baseline_classifiers classifier

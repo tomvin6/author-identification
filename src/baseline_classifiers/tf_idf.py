@@ -1,7 +1,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 import numpy as np
-from src.evaluations.logloss import multiclass_logloss
+from src.evaluations.evaluations import multiclass_logloss
 from src.utils.input_reader import *
 from src.features import tf_idf_features
 

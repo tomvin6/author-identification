@@ -23,7 +23,7 @@ from keras.preprocessing import sequence, text
 from keras.callbacks import EarlyStopping
 from nltk import word_tokenize
 from nltk.corpus import stopwords
-from src.evaluations.logloss import *
+from src.evaluations.evaluations import *
 stop_words = stopwords.words('english')
 
 

@@ -14,7 +14,7 @@ from src.features.writing_style_features import get_writing_style_features
 import pandas as pd
 import os
 
-from src.evaluations.logloss import multiclass_logloss
+from src.evaluations.evaluations import multiclass_logloss
 from src.utils.input_reader import train_vali_split, load_data_sets
 from src.advanced_classifiers.columnSelectors import *
 

@@ -9,7 +9,7 @@ from sklearn import metrics, model_selection
 
 from src.baseline_classifiers.svm_tfidf import *
 import src.baseline_classifiers.fasttext as fasttext
-from src.evaluations.logloss import *
+from src.evaluations.evaluations import *
 
 
 # preproceeings are:

@@ -2,7 +2,7 @@ from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.decomposition import PCA as sklearnPCA, TruncatedSVD
-from src.evaluations.logloss import *
+from src.evaluations.evaluations import *
 from src.selectors.average_words_selector import AverageWordsSelector
 from src.selectors.item_selector import *
 from src.utils.input_reader import *

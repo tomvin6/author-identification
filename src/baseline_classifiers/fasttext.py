@@ -3,7 +3,7 @@ from keras.layers import Dense, GlobalAveragePooling1D, Embedding
 from keras.models import Sequential
 from sklearn import metrics
 
-from src.evaluations.logloss import *
+from src.evaluations.evaluations import *
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D,Lambda,Input,GlobalMaxPooling1D, Conv1D, MaxPooling1D, Flatten, Bidirectional, SpatialDropout1D,TimeDistributed
 

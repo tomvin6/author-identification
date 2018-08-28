@@ -1,7 +1,7 @@
 from sklearn.naive_bayes import MultinomialNB
 
 from src.baseline_classifiers.tf_idf import *
-from src.evaluations.logloss import multiclass_logloss
+from src.evaluations.evaluations import multiclass_logloss
 from src.utils.input_reader import *
 
 
