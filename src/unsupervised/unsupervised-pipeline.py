@@ -2,7 +2,7 @@ from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.decomposition import PCA as sklearnPCA, TruncatedSVD
-from src.evaluations.logloss import *
+from src.evaluations.evaluations import *
 from src.selectors.average_words_selector import AverageWordsSelector
 from src.selectors.item_selector import *
 from src.utils.input_reader import *
@@ -18,7 +18,7 @@ model_data_name = 'doc2vec_fsize[' + str(feature_size) + ']_clean[' + 'False' + 
 if __name__ == '__main__':
     print("Pipeline: unsupervised algorithm")
     print("50 readers input")
-    print("Features: d2v, average word count")
+    print("Features: d2v, average word count, 3 4 5 grams")
 
     df = load_50_authors_data_sets_to_dict()
     labels = df['labels']
@@ -67,8 +67,8 @@ if __name__ == '__main__':
     # additional features should be added to here
     combined_features = FeatureUnion([
             ('word_count', word_count_pipeline),
-            ("d2vA", doc2vec_selectorA),
-            ("d2vB", doc2vec_selectorB),
+            # ("d2vA", doc2vec_selectorA),
+            # ("d2vB", doc2vec_selectorB),
             ("tfidf3", tf_idf_3_grams),
             ("tfidf4", tf_idf_4_grams),
             ("tfidf5", tf_idf_5_grams)

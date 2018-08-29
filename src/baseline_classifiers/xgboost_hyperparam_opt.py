@@ -7,7 +7,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import StratifiedKFold
 
 from src.baseline_classifiers.svm_tfidf import *
-from src.evaluations.logloss import *
+from src.evaluations.evaluations import *
 from src.features import naive_bayes_fetures
 from src.features import pos_tagging
 from src.features import svd_features
