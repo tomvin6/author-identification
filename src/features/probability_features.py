@@ -12,7 +12,7 @@ def get_prob_vectorizer_features(xtrain, xtest,ytrain,ytest, vectorizer, col, mo
 
     cv_scores = []
     pred_test = 0
-    pred_train = np.zeros([xtrain.shape[0], 3])
+    pred_train = np.zeros([xtrain.shape[0], len(set(ytrain))])
     kf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=123)
 
     print('CV started')
@@ -37,6 +37,9 @@ def get_prob_vectorizer_features(xtrain, xtest,ytrain,ytest, vectorizer, col, mo
 
     for i in range(len(set(ytrain))):
         xtest[prefix + str(i)]=pred_test[:, i]
+
+    #return the model to be used on a new row outside of db
+    return model.fit(X, y)
 
     # xtrain[prefix + 'eap'] = pred_train[:, 0]
     # xtrain[prefix + 'hpl'] = pred_train[:, 1]

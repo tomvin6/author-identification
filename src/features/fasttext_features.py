@@ -1,14 +1,11 @@
-from typing import List, Any
-
-from keras.callbacks import EarlyStopping
 from keras.layers import Dense, GlobalAveragePooling1D, Embedding
 from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
-from sklearn import metrics, model_selection
+from sklearn import model_selection
 
-from src.baseline_classifiers.svm_tfidf import *
 import src.baseline_classifiers.fasttext as fasttext
+from src.baseline_classifiers.svm_tfidf import *
 from src.evaluations.logloss import *
 
 
@@ -85,36 +82,9 @@ def create_model(input_dim, embedding_dims=20, optimizer='adam'):
     return model
 
 
-def get_fasttext_features1(docstrain, ytrain, docsvalid, yvalid, input_dim=0):
-    model = create_model(input_dim)
-    hist = model.fit(docstrain, ytrain,
-                     batch_size=16,
-                     validation_data=(docsvalid, yvalid),
-                     epochs=16,
-                     callbacks=[EarlyStopping(patience=4, monitor='val_loss')])
-    model.predict(docsvalid)
-    # CHANGED hist TO HIST.MODEL
-    predictions = hist.model.predict_proba(docsvalid)
-    predictions_classes = hist.model.predict_classes(docsvalid)
 
 
-    print("logloss: %0.3f " % metrics.log_loss(yvalid, predictions))
-    print("accuracy: %0.3f" % (metrics.accuracy_score(predictions_classes, yvalid)))
-
-    return predictions, predictions_classes
-
-
-def test_fasttest_cls1():
-    # read input data
-    path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
-    train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
-    docs = create_docs(train_df['text'])
-    xtrain, xvalid, ytrain, yvalid = train_test_split(docs, train_df.author_label, stratify=train_df.author_label,
-                                                      random_state=42,
-                                                      test_size=0.2, shuffle=True)
-    get_fasttext_features1(xtrain, ytrain, xvalid, yvalid, np.max(docs) + 1)
-
-
+#get fsx featurew for trainig and validation set in a cross validation methodology
 def get_fasttext_features(xtrain, ytrain, xvalid, yvalid, referance_col='text', lbl_prefix='fastext_'):
     cv_scores = []
     pred_full_test = 0
@@ -148,6 +118,48 @@ def get_fasttext_features(xtrain, ytrain, xvalid, yvalid, referance_col='text', 
     columns = [lbl_prefix + str(i) for i in range(len(set(ytrain)))]
     return pd.DataFrame(columns=columns, data=pred_train), pd.DataFrame(columns=columns, data=pred_full_test)
 
+#this methos to be used to save model created on training set, for new row currently not in DB
+def obtain_fasttext_model(xtrain, ytrain, xvalid, yvalid, referance_col='text'):
+    fsx = fasttext.fasttext_classifier()
+    docstrain, tokenizer = create_docs(data=xtrain[referance_col],referance_col=referance_col)
+    fsx.set_tokenizer(tokenizer)
+
+    docstest = create_docs(data=xvalid[referance_col], tokenizer=fsx.tokenizer, train_mode=False,referance_col=referance_col)
+    input_dim = np.max(docstrain) + 1
+    fsx.create_model(input_dim)
+
+    fsx.train(docstrain, ytrain, docstest, yvalid)
+    return fsx
+
+
+# def get_fasttext_features1(docstrain, ytrain, docsvalid, yvalid, input_dim=0):
+#     model = create_model(input_dim)
+#     hist = model.fit(docstrain, ytrain,
+#                      batch_size=16,
+#                      validation_data=(docsvalid, yvalid),
+#                      epochs=16,
+#                      callbacks=[EarlyStopping(patience=4, monitor='val_loss')])
+#     model.predict(docsvalid)
+#     # CHANGED hist TO HIST.MODEL
+#     predictions = hist.model.predict_proba(docsvalid)
+#     predictions_classes = hist.model.predict_classes(docsvalid)
+#
+#
+#     print("logloss: %0.3f " % metrics.log_loss(yvalid, predictions))
+#     print("accuracy: %0.3f" % (metrics.accuracy_score(predictions_classes, yvalid)))
+#
+#     return predictions, predictions_classes
+#
+#
+# def test_fasttest_cls1():
+#     # read input data
+#     path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
+#     train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
+#     docs = create_docs(train_df['text'])
+#     xtrain, xvalid, ytrain, yvalid = train_test_split(docs, train_df.author_label, stratify=train_df.author_label,
+#                                                       random_state=42,
+#                                                       test_size=0.2, shuffle=True)
+#     get_fasttext_features1(xtrain, ytrain, xvalid, yvalid, np.max(docs) + 1)
 
 if __name__ == '__main__':
     path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep

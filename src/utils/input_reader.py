@@ -59,11 +59,11 @@ def load_50_authors_data_sentences_to_dict():
                     if sentence.__len__()>0 and sentence.count(' ')>1:
                         docs.append(sentence)
                         labels.append(r.replace(root, ''))
-    data_dict = dict([('text', docs), ('author_label', labels)])
+    data_dict = dict([('text', docs), ('author', labels)])
     df = pd.DataFrame(data_dict)
     # encode labels
     le = preprocessing.LabelEncoder()
-    df['author_label'] = le.fit_transform(df.author_label)
+    df['author_label'] = le.fit_transform(df.author)
     df['id'] = df.index
     return df
 
@@ -93,7 +93,7 @@ def train_vali_split(train_df):
     xtrain, xvalid, ytrain, yvalid = train_test_split(train_df.text.values, train_df.author_label,
                                                       stratify=train_df.author_label,
                                                       random_state=42,
-                                                      test_size=0.1, shuffle=True)
+                                                      test_size=0.2, shuffle=True)
     return xtrain, xvalid, ytrain, yvalid
 
 
