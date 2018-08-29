@@ -50,7 +50,7 @@ def author_bar_plot(train_df):
     fig = plt.figure()
     sns.countplot(x=train_df.author_label,order = train_df.author_label.value_counts().index).set_title('records count per author')
     fig.show()
-    fig.savefig('output_charts//author_bar_plot.pdf', format='pdf')
+    fig.savefig('output_charts//50_authors_db//author_bar_plot.pdf', format='pdf')
 
 
 def plot_token_frequencies(author_df, referance_column='text_cleaned2', title_prefix=''):
