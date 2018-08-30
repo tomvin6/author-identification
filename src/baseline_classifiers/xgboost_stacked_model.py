@@ -6,23 +6,24 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.naive_bayes import MultinomialNB
 
 from src.baseline_classifiers.svm_tfidf import *
-from src.evaluations.logloss import *
 from src.features import fasttext_features
 from src.features import probability_features
 from src.features.writing_style_features import *
 from sklearn.externals import joblib
 from keras.models import load_model
 import pickle as pickle
-from sklearn.feature_extraction.text import  TfidfTransformer
+from sklearn.feature_extraction.text import TfidfTransformer
 
 nltk.download('maxent_ne_chunker')
 from src.features.santimant_features import *
 
 # text to be processes should beunder 'text column
 path_to_dumps = "xgboost_stacked_sub_mod_dumps"
+
+
 # path_to_dumps = "tests"
 
-#TODO- not tested!
+# TODO- not tested!
 def get_features_for_text(text_df):
     print("pre-process text...")
     text_df_processed = preprocess_text(pd.DataFrame(text_df, columns=['text']))
@@ -30,7 +31,8 @@ def get_features_for_text(text_df):
 
     print("adding stacked features...")
     print("1. on original text")
-    loaded_vec = CountVectorizer(decode_error="replace", vocabulary=pickle.load(open(path_to_dumps + "\\vec_nb_orig_txt_ctv.pkl", "rb")))
+    loaded_vec = CountVectorizer(decode_error="replace",
+                                 vocabulary=pickle.load(open(path_to_dumps + "\\vec_nb_orig_txt_ctv.pkl", "rb")))
     X = loaded_vec.transform(text_df_processed['text'])
     clf = joblib.load(path_to_dumps + "\\nb_orig_txt_ctv.pkl")
     prob_predictions = clf.predict_proba(X)
@@ -49,7 +51,8 @@ def get_features_for_text(text_df):
     print("2. on lematized text")
     tfidftransformer = TfidfTransformer()
     loaded_vec = CountVectorizer(decode_error="replace",
-                                 vocabulary=pickle.load(open(path_to_dumps + "\\vec_nb_txtcleaned_wrd_tfidf.pkl", "rb")))
+                                 vocabulary=pickle.load(
+                                     open(path_to_dumps + "\\vec_nb_txtcleaned_wrd_tfidf.pkl", "rb")))
     X = tfidftransformer.fit_transform(loaded_vec.fit_transform(text_df_processed['text_cleaned']))
     clf = joblib.load(path_to_dumps + "\\nb_txtcleaned_wrd_tfidf.pkl")
     prob_predictions = clf.predict_proba(X)
@@ -57,7 +60,8 @@ def get_features_for_text(text_df):
         text_df_processed['nb_txtcleaned_wrd_tfidf' + str(i)] = prob_predictions[:, i]
 
     print("3. on entity annotated text")
-    loaded_vec = CountVectorizer(decode_error="replace", vocabulary=pickle.load(open(path_to_dumps + "\\vec_nb_txtent_ctv.pkl", "rb")))
+    loaded_vec = CountVectorizer(decode_error="replace",
+                                 vocabulary=pickle.load(open(path_to_dumps + "\\vec_nb_txtent_ctv.pkl", "rb")))
     X = loaded_vec.transform(text_df_processed['text_with_entities'])
     clf = joblib.load(path_to_dumps + "\\nb_txtent_ctv.pkl")
     prob_predictions = clf.predict_proba(X)
@@ -65,7 +69,8 @@ def get_features_for_text(text_df):
         text_df_processed['nb_txtent_ctv' + str(i)] = prob_predictions[:, i]
 
     print("4. on pos-tagged text")
-    loaded_vec = CountVectorizer(decode_error="replace", vocabulary=pickle.load(open(path_to_dumps + "\\vec_nb_txtpos_ctv.pkl", "rb")))
+    loaded_vec = CountVectorizer(decode_error="replace",
+                                 vocabulary=pickle.load(open(path_to_dumps + "\\vec_nb_txtpos_ctv.pkl", "rb")))
     X = loaded_vec.transform(text_df_processed['text_pos_tag_pairs'])
     clf = joblib.load(path_to_dumps + "\\nb_txtpos_ctv.pkl")
     prob_predictions = clf.predict_proba(X)
@@ -76,28 +81,30 @@ def get_features_for_text(text_df):
 
     print("adding fasttext features...")
     print("1. on original text")
-    X, tokenizer = fasttext_features.create_docs(data=text_df_processed['text'],referance_col='text')
+    X, tokenizer = fasttext_features.create_docs(data=text_df_processed['text'], referance_col='text')
     fsx = load_model(path_to_dumps + "\\fsx_orgtxt_.h5")
     prob_predictions = fsx.predict_proba(X)
     for i in range(len(set(fsx.predict_classes(X)))):
         text_df_processed['fsx_orgtxt_' + str(i)] = prob_predictions[:, i]
 
     print("2. on lematized text")
-    X, tokenizer= fasttext_features.create_docs(data=text_df_processed['text_cleaned'],referance_col='text_cleaned')
+    X, tokenizer = fasttext_features.create_docs(data=text_df_processed['text_cleaned'], referance_col='text_cleaned')
     fsx = load_model(path_to_dumps + "\\fsx_cleanedtxt_.h5")
     prob_predictions = fsx.predict_proba(X)
     for i in range(len(set(fsx.predict_classes(X)))):
         text_df_processed['fsx_cleanedtxt_' + str(i)] = prob_predictions[:, i]
 
     print("3. on entity annotated text")
-    X, tokenizer= fasttext_features.create_docs(data=text_df_processed['text_with_entities'],referance_col='text_with_entities')
+    X, tokenizer = fasttext_features.create_docs(data=text_df_processed['text_with_entities'],
+                                                 referance_col='text_with_entities')
     fsx = load_model(path_to_dumps + "\\fsx_enttxt_.h5")
     prob_predictions = fsx.predict_proba(X)
     for i in range(len(set(fsx.predict_classes(X)))):
         text_df_processed['fsx_enttxt_' + str(i)] = prob_predictions[:, i]
 
     print("4. on pos-tagged text")
-    X, tokenizer= fasttext_features.create_docs(data=text_df_processed['text_with_entities'],referance_col='text_pos_tag_pairs')
+    X, tokenizer = fasttext_features.create_docs(data=text_df_processed['text_with_entities'],
+                                                 referance_col='text_pos_tag_pairs')
     fsx = load_model(path_to_dumps + "\\fsx_postxt_.h5")
     prob_predictions = fsx.predict_proba(X)
     for i in range(len(set(fsx.predict_classes(X)))):
@@ -106,21 +113,28 @@ def get_features_for_text(text_df):
     print("fast-text features added!")
 
     drop = ['text', 'text_cleaned', 'text_with_entities', 'text_pos_tag_pairs']
-    text_df_processed=text_df_processed.drop(drop, axis=1)
+    text_df_processed = text_df_processed.drop(drop, axis=1)
     return text_df_processed
 
-def train(train_df):
-    print("trainng xgb model with stacked features")
-    print("Load data...")
-    # path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
-    # train_df, test_df, sample_df = load_data_sets(path_prefix + "train_short.csv", path_prefix + "test_short.csv", None)
-    xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
-    print("data loaded!")
 
-    print("pre-process text...")
-    xtrain_processed = preprocess_text(pd.DataFrame(xtrain, columns=['text']))
-    xvalid_processed = preprocess_text(pd.DataFrame(xvalid, columns=['text']))
-    print("finished pre-process!")
+def train(train_df, preprocess=True):
+    print("trainng xgb model with stacked features")
+
+    if preprocess:
+        print("Load data...")
+        # path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
+        # train_df, test_df, sample_df = load_data_sets(path_prefix + "train_short.csv", path_prefix + "test_short.csv", None)
+        train_df = load_50_authors_data_sentences_to_dict()
+        xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
+        print("data loaded!")
+        print("pre-process text...")
+        xtrain_processed = preprocess_text(pd.DataFrame(xtrain, columns=['text']))
+        xvalid_processed = preprocess_text(pd.DataFrame(xvalid, columns=['text']))
+        print("finished pre-process!")
+    else:
+        print("loading pre-process text...")
+        xtrain_processed_df = load_50_authors_preprocessed_data()
+        xtrain_processed, xvalid_processed, ytrain, yvalid = train_vali_split(xtrain_processed_df)
 
     xtrain_processed = xtrain_processed.reset_index(drop=True)
     xvalid_processed = xvalid_processed.reset_index(drop=True)
@@ -276,4 +290,4 @@ def train(train_df):
 if __name__ == '__main__':
     print("test_train")
     train_df = load_50_authors_data_sentences_to_dict()
-    train(train_df)
+    train(train_df, preprocess=False)

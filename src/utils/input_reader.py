@@ -67,6 +67,12 @@ def load_50_authors_data_sentences_to_dict():
     df['id'] = df.index
     return df
 
+def load_50_authors_preprocessed_data():
+    print("Input data: 50 Authors data-set")
+    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'df_train_50_auth_preprocessed.tsv'
+    df= pd.read_csv(root, sep='\t')
+    return df
+
 
 def load_txt_data_sets(train_path,test_path,sample_path,encode_lables=True):
     if train_path is None:
@@ -90,7 +96,11 @@ def load_txt_data_sets(train_path,test_path,sample_path,encode_lables=True):
 
 
 def train_vali_split(train_df):
-    xtrain, xvalid, ytrain, yvalid = train_test_split(train_df.text.values, train_df.author_label,
+    # xtrain, xvalid, ytrain, yvalid = train_test_split(train_df.text.values, train_df.author_label,
+    #                                                   stratify=train_df.author_label,
+    #                                                   random_state=42,
+    #                                                   test_size=0.2, shuffle=True)
+    xtrain, xvalid, ytrain, yvalid = train_test_split(train_df.drop(['author','author_label'],axis=1), train_df.author_label,
                                                       stratify=train_df.author_label,
                                                       random_state=42,
                                                       test_size=0.2, shuffle=True)
