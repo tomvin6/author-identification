@@ -1,4 +1,4 @@
-# author identification- Data analysis
+# Author identification- Data analysis
 
 this file is a documentation for content included in data analysis section
 
