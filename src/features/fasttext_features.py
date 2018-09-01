@@ -6,7 +6,6 @@ from sklearn import model_selection
 
 import src.baseline_classifiers.fasttext as fasttext
 from src.baseline_classifiers.svm_tfidf import *
-from src.evaluations.logloss import *
 from src.evaluations.evaluations import *
 
 
@@ -83,28 +82,31 @@ def create_model(input_dim, embedding_dims=20, optimizer='adam'):
     return model
 
 
-
-
-#get fsx featurew for trainig and validation set in a cross validation methodology
+# get fsx featurew for trainig and validation set in a cross validation methodology
 def get_fasttext_features(xtrain, ytrain, xvalid, yvalid, referance_col='text', lbl_prefix='fastext_'):
     cv_scores = []
     pred_full_test = 0
     pred_train = np.zeros([xtrain.shape[0], len(set(ytrain))])
 
     fsx = fasttext.fasttext_classifier()
-    docstrain, tokenizer = create_docs(data=xtrain[referance_col],referance_col=referance_col)
+    docstrain, tokenizer = create_docs(data=xtrain[referance_col], referance_col=referance_col)
     fsx.set_tokenizer(tokenizer)
 
-    docstest = create_docs(data=xvalid[referance_col], tokenizer=fsx.tokenizer, train_mode=False,referance_col=referance_col)
+    docstest = create_docs(data=xvalid[referance_col], tokenizer=fsx.tokenizer, train_mode=False,
+                           referance_col=referance_col)
     input_dim = np.max(docstrain) + 1
     fsx.create_model(input_dim)
 
     # split training set to 5 folds
     kf = model_selection.KFold(n_splits=5, shuffle=True, random_state=2017)
+    cv_cnt = 1
     for dev_index, val_index in kf.split(docstrain):
+        print("CV fsx:" + str(cv_cnt))
+        cv_cnt += 1
+
         dev_X, val_X = docstrain[dev_index], docstrain[val_index]
         # dev_y, val_y = ytrain.iloc[dev_index], ytrain.iloc[val_index]
-        dev_y, val_y = ytrain[dev_index], ytrain[val_index]
+        dev_y, val_y = ytrain.iloc[dev_index], ytrain.iloc[val_index]
 
         fsx.train(dev_X, dev_y, val_X, val_y)
         prob_val_y, cls_val_y = fsx.predict(val_X)
@@ -119,13 +121,15 @@ def get_fasttext_features(xtrain, ytrain, xvalid, yvalid, referance_col='text', 
     columns = [lbl_prefix + str(i) for i in range(len(set(ytrain)))]
     return pd.DataFrame(columns=columns, data=pred_train), pd.DataFrame(columns=columns, data=pred_full_test)
 
-#this methos to be used to save model created on training set, for new row currently not in DB
+
+# this methos to be used to save model created on training set, for new row currently not in DB
 def obtain_fasttext_model(xtrain, ytrain, xvalid, yvalid, referance_col='text'):
     fsx = fasttext.fasttext_classifier()
-    docstrain, tokenizer = create_docs(data=xtrain[referance_col],referance_col=referance_col)
+    docstrain, tokenizer = create_docs(data=xtrain[referance_col], referance_col=referance_col)
     fsx.set_tokenizer(tokenizer)
 
-    docstest = create_docs(data=xvalid[referance_col], tokenizer=fsx.tokenizer, train_mode=False,referance_col=referance_col)
+    docstest = create_docs(data=xvalid[referance_col], tokenizer=fsx.tokenizer, train_mode=False,
+                           referance_col=referance_col)
     input_dim = np.max(docstrain) + 1
     fsx.create_model(input_dim)
 
@@ -166,7 +170,8 @@ if __name__ == '__main__':
     path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
     train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
     # docs = create_docs(train_df['text'])
-    xtrain, xvalid, ytrain, yvalid = train_test_split(train_df, train_df['author_label'], stratify=train_df['author_label'],
+    xtrain, xvalid, ytrain, yvalid = train_test_split(train_df, train_df['author_label'],
+                                                      stratify=train_df['author_label'],
                                                       random_state=42,
                                                       test_size=0.2, shuffle=True)
     get_fasttext_features(xtrain, ytrain, xvalid, yvalid, lbl_prefix='fastext_')

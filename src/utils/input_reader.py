@@ -43,9 +43,12 @@ def load_50_authors_data_sets_to_dict():
     return df
 
 
-def load_50_authors_data_sentences_to_dict():
+def load_50_authors_data_sentences_to_dict(train=True):
     print("Input data: 50 Authors data-set")
-    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
+    if train:
+        root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
+    else:
+        root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50test'
     labels = []
     docs = []
     for r, dirs, files in os.walk(root):
@@ -100,7 +103,7 @@ def train_vali_split(train_df):
     #                                                   stratify=train_df.author_label,
     #                                                   random_state=42,
     #                                                   test_size=0.2, shuffle=True)
-    xtrain, xvalid, ytrain, yvalid = train_test_split(train_df.drop(['author','author_label'],axis=1), train_df.author_label,
+    xtrain, xvalid, ytrain, yvalid = train_test_split(train_df.drop(['id','author','author_label'],axis=1), train_df.author_label,
                                                       stratify=train_df.author_label,
                                                       random_state=42,
                                                       test_size=0.2, shuffle=True)

@@ -18,7 +18,7 @@ def get_prob_vectorizer_features(xtrain, xtest,ytrain,ytest, vectorizer, col, mo
     print('CV started')
     for train_index, dev_index in kf.split(X, y):
         X_train, X_dev = X[train_index], X[dev_index]
-        y_train, y_dev = y[train_index], y[dev_index]
+        y_train, y_dev = y.iloc[train_index], y.iloc[dev_index]
 
         model.fit(X_train, y_train)
         pred_dev = model.predict_proba(X_dev)
@@ -40,11 +40,3 @@ def get_prob_vectorizer_features(xtrain, xtest,ytrain,ytest, vectorizer, col, mo
 
     #return the model to be used on a new row outside of db
     return model.fit(X, y)
-
-    # xtrain[prefix + 'eap'] = pred_train[:, 0]
-    # xtrain[prefix + 'hpl'] = pred_train[:, 1]
-    # xtrain[prefix + 'mws'] = pred_train[:, 2]
-    #
-    # xtest[prefix + 'eap'] = pred_test[:, 0]
-    # xtest[prefix + 'hpl'] = pred_test[:, 1]
-    # xtest[prefix + 'mws'] = pred_test[:, 2]

@@ -1,22 +1,9 @@
-from nltk import word_tokenize
-from sklearn.cross_validation import train_test_split
-from sklearn.decomposition import TruncatedSVD
-from sklearn.feature_extraction import stop_words
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.grid_search import GridSearchCV
-from sklearn.linear_model import LogisticRegression
-from sklearn import metrics, preprocessing, decomposition, model_selection, metrics, pipeline
-import numpy as np
-from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from src.features.fasttext_features import get_fasttext_features1, get_fasttext_features, create_docs, test_fasttest_cls1
-from src.features.writing_style_features import get_writing_style_features
-import pandas as pd
-import os
 
-from src.evaluations.evaluations import multiclass_logloss
-from src.utils.input_reader import train_vali_split, load_data_sets
 from src.advanced_classifiers.columnSelectors import *
+from src.features.writing_style_features import get_writing_style_features
 
 # baseline_classifiers classifier
 # Algorithm: logistic regression
@@ -27,22 +14,20 @@ print("Algorithm: Log regression")
 print("Pre processing: removal of english stop words turned off, lowercase turn off")
 print("Features: Word-count")
 
-
-
 # LOAD DATA
 path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
 df_data, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
-df = df_data #df_data.head(n = 20)
-#df = df_data
+df = df_data  # df_data.head(n = 20)
+# df = df_data
 author_col = df['author_label']
 df = get_writing_style_features(df)
 df['author'] = author_col
-features = [c for c in df.columns.values if c  not in ['id','author', 'author_label']]
+features = [c for c in df.columns.values if c not in ['id', 'author', 'author_label']]
 X_train, X_test, y_train, y_test = train_test_split(df[features], df['author'], test_size=0.2, random_state=42)
-
 
 text_feature = X_train['text']
 author_numbers = pd.DataFrame(y_train)
+
 
 # xtrain, xvalid, ytrain, yvalid = train_test_split(docs, author_numbers, stratify=author_numbers, random_state=42, test_size=0.2)
 
@@ -51,53 +36,53 @@ author_numbers = pd.DataFrame(y_train)
 
 def transform_raw_features(X_train):
     chr_len = Pipeline([
-                    ('selector', NumberSelector(key='char_count')),
-                     ('standard', StandardScaler())
-                ])
+        ('selector', NumberSelector(key='char_count')),
+        ('standard', StandardScaler())
+    ])
     chr_len.fit_transform(X_train)
 
     chr_len = Pipeline([
-                    ('selector', NumberSelector(key='char_count')),
-                     ('standard', StandardScaler())
-                ])
+        ('selector', NumberSelector(key='char_count')),
+        ('standard', StandardScaler())
+    ])
     chr_len.fit_transform(X_train)
     word_len = Pipeline([
-                    ('selector', NumberSelector(key='word_count')),
-                     ('standard', StandardScaler())
-                ])
+        ('selector', NumberSelector(key='word_count')),
+        ('standard', StandardScaler())
+    ])
     word_len.fit_transform(X_train)
     unique_word_fraction = Pipeline([
-                    ('selector', NumberSelector(key='unique_word_fraction')),
-                     ('standard', StandardScaler())
-                ])
+        ('selector', NumberSelector(key='unique_word_fraction')),
+        ('standard', StandardScaler())
+    ])
     unique_word_fraction.fit_transform(X_train)
     punctuations_fraction = Pipeline([
-                    ('selector', NumberSelector(key='punctuations_fraction')),
-                     ('standard', StandardScaler())
-                ])
+        ('selector', NumberSelector(key='punctuations_fraction')),
+        ('standard', StandardScaler())
+    ])
     punctuations_fraction.fit_transform(X_train)
     fraction_noun = Pipeline([
-                    ('selector', NumberSelector(key='fraction_noun')),
-                     ('standard', StandardScaler())
-                ])
+        ('selector', NumberSelector(key='fraction_noun')),
+        ('standard', StandardScaler())
+    ])
     fraction_noun.fit_transform(X_train)
     fraction_adj = Pipeline([
-                    ('selector', NumberSelector(key='fraction_adj')),
-                     ('standard', StandardScaler())
-                ])
+        ('selector', NumberSelector(key='fraction_adj')),
+        ('standard', StandardScaler())
+    ])
     fraction_adj.fit_transform(X_train)
     fraction_verbs = Pipeline([
-                    ('selector', NumberSelector(key='fraction_verbs')),
-                     ('standard', StandardScaler())
-                ])
+        ('selector', NumberSelector(key='fraction_verbs')),
+        ('standard', StandardScaler())
+    ])
     fraction_verbs.fit_transform(X_train)
 
-    ctv = CountVectorizer(analyzer='word',token_pattern=r'\w{0,}',
-                ngram_range=(1, 2), lowercase=False, stop_words=None)
+    ctv = CountVectorizer(analyzer='word', token_pattern=r'\w{0,}',
+                          ngram_range=(1, 2), lowercase=False, stop_words=None)
     text = Pipeline([
-                    ('selector', TextSelector(key='text')),
-                    ('tfidf', ctv)
-                ])
+        ('selector', TextSelector(key='text')),
+        ('tfidf', ctv)
+    ])
     text.fit_transform(X_train)
 
     # transform all data with new features
@@ -117,7 +102,6 @@ def transform_raw_features(X_train):
 
 
 combined_raw_features_for_train = transform_raw_features(X_train)
-
 
 pipeline = Pipeline([
     ('all_features', combined_raw_features_for_train),
@@ -149,4 +133,3 @@ final_predictions_probs = clf.predict_proba(test_valid_features)
 
 print("accuracy: " + str(metrics.accuracy_score(final_predictions_classes, y_test)))
 print("log-loss: " + str(metrics.log_loss(y_test, final_predictions_probs)))
-
