@@ -32,6 +32,9 @@ print("Features: Word-count")
 # LOAD DATA
 path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
 df_data, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
+
+cnt_srs = train_df['author'].value_counts()
+
 df = df_data #df_data.head(n = 20)
 #df = df_data
 author_col = df['author_label']

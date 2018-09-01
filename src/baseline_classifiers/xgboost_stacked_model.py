@@ -24,6 +24,7 @@ path_to_dumps = "xgboost_stacked_sub_mod_dumps"
 # path_to_dumps = "tests"
 
 # TODO- not tested!
+# get df with text, add supervised features
 def get_features_for_text(text_df):
     print("pre-process text...")
     text_df_processed = preprocess_text(pd.DataFrame(text_df, columns=['text']))

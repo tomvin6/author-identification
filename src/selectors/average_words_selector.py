@@ -21,3 +21,13 @@ class AverageWordsSelector(BaseEstimator, TransformerMixin):
 
     def transform(self, df):
         return pd.DataFrame(self.count.apply(lambda x: (self.mean - x) / (self.max - self.min)))
+
+
+class MetaStyleSelector(BaseEstimator, TransformerMixin):
+
+    def fit(self, df):
+        return self
+
+    def transform(self, df):
+        df = preprocess_text(df)
+        return df
