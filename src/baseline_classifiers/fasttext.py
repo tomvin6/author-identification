@@ -36,7 +36,7 @@ class fasttext_classifier(object):
         self.model.add(Flatten())
         self.model.add(Dense(800, activation='relu'))
         self.model.add(Dropout(0.5))
-        self.model.add(Dense(3, activation='softmax'))
+        self.model.add(Dense(50, activation='softmax'))
 
 
         self.model.compile(loss='sparse_categorical_crossentropy',

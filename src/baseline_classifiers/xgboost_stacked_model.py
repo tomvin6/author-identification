@@ -289,6 +289,6 @@ def train(train_df, preprocess=True):
 
 
 if __name__ == '__main__':
-    print("test_train")
-    train_df = load_50_authors_data_sentences_to_dict()
-    train(train_df, preprocess=False)
+    print("get features for C50test data")
+    test_df = load_50_authors_data_sentences_to_dict(train=False)
+    get_features_for_text(test_df)
