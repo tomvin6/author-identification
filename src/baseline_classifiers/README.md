@@ -1,87 +1,157 @@
-# Author-identification, suppervised learning baseline
+# Author-identification, suppervised learning models
+in this directory, you can find the baslines, tested features and suppervised learning models we constructed.
+Below you will find documentation on how to run each of the models and what is their performance.
 
-One Paragraph of project description goes here
+input params:
+* --file=<path_to_train_data_file>
+* --preprocess=<one of POS, ENT,CLN>
 
-## Getting Started
+## Test word count features
+Classifiers based on MultinomialNB on top of "Bag of words" vector (CountVectorizer), with 3-grams.
+coded in class word_count.py
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
-### Prerequisites
-
-What things you need to install the software and how to install them
-
+### Baseline - Original text, MultinomialNB
+to re-train the classifier, and output log-loss_accuracy simply run 
 ```
-Give examples
+python word_count.py
 ```
+performance:
+* log-loss = 1.64
+* Accuracy = 0.69
 
-### Installing
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
-
+To test performance of classifier on external data, run 
 ```
-Give the example
+python word_count.py --file=<path_to_train_data_file>
 ```
-
-And repeat
-
+To test performance of classifier on external data and save plots run 
 ```
-until finished
+python word_count.py --file=<path_to_train_data_file> --plots=True
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+Note: input data should be tab-delimited, with header, including columns 'text' and 'author_label'(int).
 
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
+### POS tagged text, MultinomialNB
 ```
-Give an example
+python word_count.py --file=<path_to_train_data_file> --preprocess=POS
 ```
 
-### And coding style tests
+performance:
+* log-loss = 1.755 
+* Accuracy = 0.69
 
-Explain what these tests test and why
-
+### Entity tagged text, MultinomialNB
 ```
-Give an example
+python word_count.py --file=<path_to_train_data_file> --preprocess=ENT
 ```
+performance:
+* log-loss = 2.257 
+* Accuracy = 0.55
 
-## Deployment
+## Test TF-IDF features
+Classifiers based on MultinomialNB/Logistic Regression on top of TF-IDF features (TfidfVectorizer), with N-grams.
 
-Add additional notes about how to deploy this on a live system
+### Original text, MultinomialNB
+to re-train the classifier, and output log-loss_accuracy simply run
+```
+python nb_tf_idf.py
+```
+performance:
+* log-loss = 2.152 
+* Accuracy = 0.72
 
-## Built With
+To test performance of classifier on external data, run 
+```
+python nb_tf_idf.py --file=<path_to_train_data_file>
+```
+Note: input data should be tab-delimited, with header, including columns 'text' and 'author_label'(int).
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+### Cleaned text, MultinomialNB
+stop words and panctuations annotated.
+performance:
+* log-loss = 1.522 
+* Accuracy = 0.7
 
-## Contributing
+To test performance of classifier on external data, run 
+```
+python nb_tf_idf.py --preprocess=CLN --file=<path_to_train_data_file>
+```
+Note: input data should be tab-delimited, with header, including columns 'text' and 'author_label'(int)
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+### POS tagged text, MultinomialNB
+to re-train the classifier, and output log-loss_accuracy simply run
+```
+python nb_tf_idf.py --preprocess=POS
+```
+performance:
+* log-loss = 2.405 
+* Accuracy = 0.68
 
-## Versioning
+To test performance of classifier on external data, run 
+```
+python nb_tf_idf.py --preprocess=POS --file=<path_to_train_data_file>
+```
+Note: input data should be tab-delimited, with header, including columns 'text' and 'author_label'(int).
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+### Entity tagged text, MultinomialNB
+to re-train the classifier, and output log-loss_accuracy simply run
+```
+python nb_tf_idf.py --preprocess=ENT
+```
+performance:
+* log-loss = 2.619 
+* Accuracy = 0.596
 
-## Authors
+To test performance of classifier on external data, run 
+```
+python nb_tf_idf.py --preprocess=ENT --file=<path_to_train_data_file>
+```
+Note: input data should be tab-delimited, with header, including columns 'text' and 'author_label'(int).
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+### Original text, Logistic Regression
+replace "nb_tf_idf.py" with "lgr_tf_idf.py" in the above command lines.
+performance:
+* log-loss = 1.941  
+* Accuracy = 0.73
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+### POS tagged text, Logistic Regression
+replace "nb_tf_idf.py" with "lgr_tf_idf.py" in the above command lines.
+performance:
+* log-loss = 2.240  
+* Accuracy = 0.72
 
-## License
+### Entity tagged text, Logistic Regression
+replace "nb_tf_idf.py" with "lgr_tf_idf.py" in the above command lines.
+performance:
+* log-loss = 2.400  
+* Accuracy = 0.6
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+# Test fast-text features
+To implement fast-text model we used Kares package.
+Classifiers based on MultinomialNB/Logistic Regression on top of TF-IDF features (TfidfVectorizer), with N-grams.
+settings of the model are as follows:
+TBD
 
-## Acknowledgments
+### Original text
+to re-train the classifier, and output log-loss+accuracy simply run
+```
+python fasttext.py
+```
+performance:
+* log-loss = 
+* Accuracy = 
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
+### POS teggad text
+performance:
+* log-loss = 
+* Accuracy = 
+
+### Entity teggad text
+performance:
+* log-loss = 
+* Accuracy = 
+
+### Cleaned text
+performance:
+* log-loss = 
+* Accuracy = 
+
