@@ -125,6 +125,12 @@ performance:
 * log-loss = 2.400  
 * Accuracy = 0.6
 
+###  Original text,SVM
+replace to "svm_tfidf.py" in the above command lines.
+performance:
+* log-loss = 1.722
+* Accuracy = 0.514
+
 # Test fast-text features
 To implement fast-text model we used Kares package.
 Classifiers based on MultinomialNB/Logistic Regression on top of TF-IDF features (TfidfVectorizer), with N-grams.
@@ -137,8 +143,8 @@ to re-train the classifier, and output log-loss+accuracy simply run
 python fasttext.py
 ```
 performance:
-* log-loss = 
-* Accuracy = 
+* log-loss = 1.722
+* Accuracy = 0.514
 
 ### POS teggad text
 performance:
