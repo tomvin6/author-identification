@@ -5,6 +5,7 @@ Below you will find documentation on how to run each of the models and what is t
 input params:
 * --file=<path_to_train_data_file>
 * --preprocess=<one of POS, ENT,CLN>
+* --ngram=<int values between 1 to 3>
 
 ## Baseline - Dump model
 Classifier based on Logistic regression on top of basic stylometry features as word count, charechters count, etc.
