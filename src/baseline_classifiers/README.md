@@ -19,7 +19,8 @@ performance:
 
 ## Test word count features
 Classifiers based on MultinomialNB on top of "Bag of words" vector (CountVectorizer), with 3-grams.
-code in class word_count.py
+code in class word_count.py.
+To configure ngram value, use input arg "--ngram=<ngram int value>". default set to 1.
 
 ### Original text, MultinomialNB
 to re-train the classifier, and output log-loss_accuracy simply run 
