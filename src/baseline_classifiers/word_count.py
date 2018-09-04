@@ -1,20 +1,18 @@
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.linear_model import LogisticRegression
-import numpy as np
-from sklearn.naive_bayes import MultinomialNB
+import sys
+
 from sklearn import metrics
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
 
 from src.data_analysis.statistics import load_50_auth_data
-from src.utils.input_reader import *
+from src.features.writing_style_features import preprocess_text
 from src.utils.confusion import *
-import pandas as pd
-from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
+from src.utils.input_reader import *
 
 
 # baseline_classifiers classifier
-# Algorithm: logistic regression
-# Features: TF-IDF
+# Algorithm: Naeive Bayes on bag of words
+# Features: word-count
 def get_wc_feature(xtrain, xtest):
     ctv = CountVectorizer(analyzer='word', token_pattern=r'\w{1,}',
                           ngram_range=(1, 1))
@@ -35,64 +33,90 @@ def get_wc_featur_with_max_features(xtrain, xtest, max_features=200):
     return xtrain_ctv, xvalid_ctv, ctv
 
 
+# external data set should contain columns:
+#  'author'
+# 'author_label'= author labales serialized
+# 'text'
 if __name__ == '__main__':
     print("baseline_classifiers classifier")
-    print("Algorithm: Log regression")
-    print("Features: Word-count")
+    print("Algorithm: Naeive Bayes on bag of words")
 
     # LOAD DATA
-    # path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
-    # train_df, test_df, sample_df = load_data_sets(path_prefix + "train.csv", path_prefix + "test.csv", None)
-    # xtrain, xtest, ytrain, ytest = train_vali_split(train_df)
-
     train_df = load_50_auth_data()
-    xtrain, xtest, ytrain, ytest = train_vali_split(train_df)
+    # train_df = load_50_authors_preprocessed_data()
+    referance_col = 'text'
+    plots = False
+    if len(sys.argv) > 1:
+        # command line args
+        arg_dict = command_line_args(argv=sys.argv)
 
-    # FEATURE CALCULATION
+        if "file" in (arg_dict.keys()):
+            input_data_path = arg_dict.get('file')
+            print("reading from external data file:" + input_data_path)
+            df_train = pd.read_csv(input_data_path)
+        if "preprocess" in (arg_dict.keys()):
+            df_train = preprocess_text(df_train)
+            if arg_dict.get('preprocess') == 'POS':
+                referance_col = 'text_pos_tag_pairs'
+            elif arg_dict.get('preprocess') == 'ENT':
+                referance_col = 'text_with_entities'
+            elif arg_dict.get('preprocess') == 'CLN':
+                referance_col = 'text_cleaned'
+        if "plots" in (arg_dict.keys()):
+            plots = arg_dict.get('plots')
+
+    xtrain, xtest, ytrain, ytest = train_vali_split(train_df)
+    xtrain = pd.DataFrame(xtrain[referance_col])
+    xtrain = xtrain.rename(columns={referance_col: "text"})
+
+    xtest = pd.DataFrame(xtest[referance_col])
+    xtest = xtest.rename(columns={referance_col: "text"})
+
+    # FEATURE CALCULATION- NB
     xtrain_ctv, xvalid_ctv = get_wc_feature(xtrain.text.values, xtest.text.values)
 
-    # Fitting a simple Logistic Regression on Counts
-    clflgr = LogisticRegression(C=1.0)
-    clflgr.fit(xtrain_ctv, ytrain)
-    predictions_classes_lgr = clflgr.predict(xvalid_ctv)
-    predictions_lgr = clflgr.predict_proba(xvalid_ctv)
+    clfnb = MultinomialNB()
+    clfnb.fit(xtrain_ctv, ytrain)
+    predictions_classes_nb = clfnb.predict(xvalid_ctv)
+    predictions_nb = clfnb.predict_proba(xvalid_ctv)
 
-    print("LogisticRegression:")
-    print("logloss: %0.3f " % metrics.log_loss(ytest, predictions_lgr))
-    print("accuracy: %0.3f" % (np.sum(predictions_classes_lgr == ytest) / len(ytest)))
+    print("MultinomialNB measures:")
+    print("logloss: %0.3f " % metrics.log_loss(ytest, predictions_nb))
+    print("accuracy: %0.3f" % (np.sum(predictions_classes_nb == ytest) / len(ytest)))
 
-    # Compute and plot confusion matrix
-    labels = list(set(train_df.author))
-    cnf_matrix = confusion_matrix(ytest, predictions_classes_lgr)
-    np.set_printoptions(precision=2)
-    fig = plt.figure()
-    plot_confusion_matrix(cnf_matrix, classes=labels,
-                          title='Confusion matrix')
-    fig.savefig('Confusion.pdf', format='pdf')
+    if plots:
+        print("saving plots and outputs")
+        # Compute and plot confusion matrix
+        labels = list(set(train_df.author))
+        cnf_matrix = confusion_matrix(ytest, predictions_classes_nb)
+        np.set_printoptions(precision=2)
+        fig = plt.figure()
+        plot_confusion_matrix(cnf_matrix, classes=labels,
+                              title='Confusion matrix')
+        fig.tight_layout()
+        fig.savefig('Confusion.pdf', format='pdf')
+        plt.close()
+        print("confusion matrix saved to Confusion.pdf")
 
-    # export predictions
-    d = {'text': xtest, 'predictions_lgr': predictions_classes_lgr, 'ytest': ytest}
-    df = pd.DataFrame(data=d)
-    df['predictions_lgr'] = df.predictions_lgr.apply(pd.to_numeric)
-    df['ytest'] = df.ytest.apply(pd.to_numeric)
+        # export predictions
+        xtestdf = pd.DataFrame(data=xtest).reset_index(drop=True)
+        ytestdf = pd.DataFrame(data=ytest).reset_index(drop=True)
+        predictions_classes_nbdf = pd.DataFrame(data=predictions_classes_nb).reset_index(drop=True)
+        df = pd.concat([xtestdf, predictions_classes_nbdf, ytestdf], axis=1)
+        df = df.rename(columns={0: 'predictions_nb', 'author_label': 'ytest'})
 
-    pairs = pd.DataFrame(train_df, columns=['author', 'author_label'])
-    pairs = pairs.drop_duplicates()
-    df_out = pd.merge(df, pairs, how='inner', left_on='predictions_lgr', right_on='author_label')
-    df_out = df_out.rename(index=str, columns={"author": "predictions_author"})
-    df_out = pd.merge(df_out, pairs, how='inner', left_on='ytest', right_on='author_label')
-    df_out = df_out.rename(index=str, columns={"author": "true_author"})
-    df_out = df_out.drop(['author_label_x', 'author_label_y'], axis=1)
+        pairs = pd.DataFrame(train_df, columns=['author', 'author_label'])
+        pairs = pairs.drop_duplicates()
+        df_out = pd.merge(df, pairs, how='inner', left_on='predictions_nb', right_on='author_label')
+        df_out = df_out.rename(index=str, columns={"author": "predictions_author"})
+        df_out = pd.merge(df_out, pairs, how='inner', left_on='ytest', right_on='author_label')
+        df_out = df_out.rename(index=str, columns={"author": "true_author"})
+        df_out = df_out.drop(['author_label_x', 'author_label_y'], axis=1)
 
-    pairs.to_csv('baseline_labels_encoding.csv', index=False)
-    df_out.to_csv('baseline_evaluation_classes.tsv', sep='\t',index=False)
+        pairs.to_csv('baseline_labels_encoding.ts', sep='\t', index=False)
+        df_out.to_csv('baseline_evaluation_classes.tsv', sep='\t', index=False)
 
-    # TODO- remove
-    # clfnb = MultinomialNB()
-    # clfnb.fit(xtrain_ctv, ytrain)
-    # predictions_classes_nb = clfnb.predict(xvalid_ctv)
-    # predictions_nb = clfnb.predict_proba(xvalid_ctv)
-    #
-    # print("MultinomialNB:" )
-    # print("logloss: %0.3f " % metrics.log_loss(ytest, predictions_nb))
-    # print("accuracy: %0.3f" % (np.sum(predictions_classes_nb == ytest) / len(ytest)))
+        df_errors = df_out[df_out.ytest != df_out.predictions_nb]
+        df_errors.to_csv('baseline_evaluation_classes_errors.tsv', sep='\t')
+        print(
+            "baseline_labels_encoding.csv, baseline_evaluation_classes.tsv and baseline_evaluation_classes_errors.tsv saved")

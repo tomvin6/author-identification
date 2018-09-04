@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn import metrics, model_selection, naive_bayes
 
-from src.baseline_classifiers import naive_bayes
+from src.baseline_classifiers import nb_tf_idf
 from src.features import tf_idf_features
 import pandas as pd
 
