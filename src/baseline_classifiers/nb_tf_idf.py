@@ -1,6 +1,6 @@
 import sys
 from sklearn.naive_bayes import MultinomialNB
-
+from sklearn import metrics
 from src.baseline_classifiers.lgr_tf_idf import *
 from src.data_analysis.statistics import load_50_auth_data
 from src.evaluations.evaluations import multiclass_logloss
@@ -54,5 +54,5 @@ if __name__ == '__main__':
     # ACCURACY & RESULTS
     predictions = clf.predict_proba(xvalid_tfv)
     predictions_classes = clf.predict(xvalid_tfv)
-    print("logloss: %0.3f " % multiclass_logloss(ytest, predictions))
+    print("logloss: %0.3f " %  metrics.log_loss(ytest, predictions))
     print("accuracy: %0.3f" % (np.sum(predictions_classes == ytest) / len(ytest)))
