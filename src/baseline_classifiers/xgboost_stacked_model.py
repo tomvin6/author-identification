@@ -1,30 +1,25 @@
-import nltk
+import pickle as pickle
+
 import xgboost as xgb
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from keras.models import load_model
+from sklearn.externals import joblib
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 # import xgboost as xgb
-from sklearn.model_selection import GridSearchCV
 from sklearn.naive_bayes import MultinomialNB
 
 from src.baseline_classifiers.svm_tfidf import *
 from src.features import fasttext_features
 from src.features import probability_features
 from src.features.writing_style_features import *
-from sklearn.externals import joblib
-from keras.models import load_model
-import pickle as pickle
-from sklearn.feature_extraction.text import TfidfTransformer
 
 nltk.download('maxent_ne_chunker')
 from src.features.santimant_features import *
+import matplotlib.pyplot as plt
 
-# text to be processes should beunder 'text column
+# text to be processes should be under 'text column
 path_to_dumps = "xgboost_stacked_sub_mod_dumps"
 
-
-# path_to_dumps = "tests"
-
-# TODO- not tested!
-# get df with text, add supervised features
 def get_features_for_text(text_df):
     print("pre-process text...")
     text_df_processed = preprocess_text(pd.DataFrame(text_df, columns=['text']))
@@ -162,6 +157,9 @@ def train(train_df, preprocess=True):
                                                               MultinomialNB(), 'nb_orig_txt_char_tfidf', cv=5)
     pickle.dump(vectorizer.vocabulary_, open(path_to_dumps + "\\vec_nb_orig_txt_char_tfidf.pkl", "wb"))
     joblib.dump(model, path_to_dumps + "\\nb_orig_txt_char_tfidf.pkl")
+    print("saved features files:")
+    print(path_to_dumps + "\\nb_orig_txt_ctv.pkl")
+    print(path_to_dumps + "\\nb_orig_txt_char_tfidf.pkl")
 
     print("2. on lematized text")
     vectorizer = TfidfVectorizer(
@@ -173,6 +171,8 @@ def train(train_df, preprocess=True):
                                                               'nb_txtcleaned_wrd_tfidf', cv=5)
     pickle.dump(vectorizer.vocabulary_, open(path_to_dumps + "\\vec_nb_txtcleaned_wrd_tfidf.pkl", "wb"))
     joblib.dump(model, path_to_dumps + "\\nb_txtcleaned_wrd_tfidf.pkl")
+    print("saved features files:")
+    print(path_to_dumps + "\\nb_txtcleaned_wrd_tfidf.pkl")
 
     print("3. on entity annotated text")
 
@@ -186,6 +186,9 @@ def train(train_df, preprocess=True):
     pickle.dump(vectorizer.vocabulary_, open(path_to_dumps + "\\vec_nb_txtent_ctv.pkl", "wb"))
     joblib.dump(model, path_to_dumps + "\\nb_txtent_ctv.pkl")
 
+    print("saved features files:")
+    print(path_to_dumps + "\\nb_txtent_ctv.pkl")
+
     print("4. on pos-tagged text")
     vectorizer = CountVectorizer(
         token_pattern=r'\w{1,}',
@@ -196,6 +199,9 @@ def train(train_df, preprocess=True):
                                                               'nb_txtpos_ctv', cv=5)
     pickle.dump(vectorizer.vocabulary_, open(path_to_dumps + "\\vec_nb_txtpos_ctv.pkl", "wb"))
     joblib.dump(model, path_to_dumps + "\\nb_txtpos_ctv.pkl")
+
+    print("saved features files:")
+    print(path_to_dumps + "\\nb_txtpos_ctv.pkl")
 
     print("finished stacked features additions!")
 
@@ -211,6 +217,9 @@ def train(train_df, preprocess=True):
                                                   referance_col='text')
     fsx.model.save(path_to_dumps + "\\fsx_orgtxt_.h5")
 
+    print("saved features files:")
+    print(path_to_dumps + "\\fsx_orgtxt_.h5")
+
     print("2. on lematized text")
     xtrain_fsx, xtest_fsx = fasttext_features.get_fasttext_features(xtrain_processed, ytrain, xvalid_processed, yvalid,
                                                                     referance_col='text_cleaned',
@@ -220,6 +229,9 @@ def train(train_df, preprocess=True):
     fsx = fasttext_features.obtain_fasttext_model(xtrain_processed, ytrain, xvalid_processed, yvalid,
                                                   referance_col='text_cleaned')
     fsx.model.save(path_to_dumps + "\\fsx_cleanedtxt_.h5")
+
+    print("saved features files:")
+    print(path_to_dumps + "\\fsx_cleanedtxt_.h5")
 
     print("3. on entity annotated text")
     xtrain_fsx, xtest_fsx = fasttext_features.get_fasttext_features(xtrain_processed, ytrain, xvalid_processed, yvalid,
@@ -231,6 +243,9 @@ def train(train_df, preprocess=True):
                                                   referance_col='text_with_entities')
     fsx.model.save(path_to_dumps + "\\fsx_enttxt_.h5")
 
+    print("saved features files:")
+    print(path_to_dumps + "\\fsx_enttxt_.h5")
+
     print("4. on pos-tagged text")
     xtrain_fsx, xtest_fsx = fasttext_features.get_fasttext_features(xtrain_processed, ytrain, xvalid_processed, yvalid,
                                                                     referance_col='text_pos_tag_pairs',
@@ -240,6 +255,9 @@ def train(train_df, preprocess=True):
     fsx = fasttext_features.obtain_fasttext_model(xtrain_processed, ytrain, xvalid_processed, yvalid,
                                                   referance_col='text_pos_tag_pairs')
     fsx.model.save(path_to_dumps + "\\fsx_postxt_.h5")
+
+    print("saved features files:")
+    print(path_to_dumps + "\\fsx_postxt_.h5")
 
     print("fast-text features added!")
 
@@ -251,27 +269,11 @@ def train(train_df, preprocess=True):
     X = xtrain_processed.drop(drop, axis=1)
     X_valid = xvalid_processed.drop(drop, axis=1)
 
-    # xgbc = xgb.XGBClassifier(objective='multi:softprob', nthread=1)
-    # xgb_par = {'min_child_weight': [1], 'colsample_bytree': [0.6], 'max_depth': [3],
-    #            'subsample': [0.8], 'nthread': [-1], 'silent': [1]}
-    #
-    # grid_clf = GridSearchCV(xgbc, xgb_par, n_jobs=4, verbose=1, scoring='neg_log_loss', refit=True)
-    # grid_clf.fit(X, ytrain);
-    # print('LogLoss: %.3f' % grid_clf.best_score_)
-    #
-    # predictions = grid_clf.best_estimator_.predict_proba(X_valid)
-    # predictions_classes = grid_clf.best_estimator_.predict(X_valid)
-    #
-    # print("xgboost accuracy: %0.3f" % (
-    #         np.sum(predictions_classes == yvalid) / len(yvalid)))
-    # print('\n Best parameters:')
-    # xgb.plot_importance(grid_clf.best_estimator_)
-
     ########### build model ###########
 
     xgb_par = {'min_child_weight': 1, 'eta': 0.1, 'colsample_bytree': 0.3, 'max_depth': 3,
                'subsample': 0.8, 'lambda': 2.0, 'nthread': -1, 'silent': 1,
-               'eval_metric': "mlogloss", 'objective': 'multi:softprob', 'num_class': 3}
+               'eval_metric': "mlogloss", 'objective': 'multi:softprob', 'num_class': len(set(ytrain))}
     xtr = xgb.DMatrix(X, label=ytrain)
     xvl = xgb.DMatrix(X_valid, label=yvalid)
 
@@ -280,12 +282,35 @@ def train(train_df, preprocess=True):
     model_1 = xgb.train(xgb_par, xtr, 2000, watchlist, early_stopping_rounds=50,
                         maximize=False, verbose_eval=40)
 
-    xgb.plot_importance(model_1)
 
     print('LogLoss: %.3f' % model_1.best_score)
     vl_prd = model_1.predict(xvl)
     vl_prd_cls = np.argmax(vl_prd, axis=1)
     print("Accuracy: %0.3f" % (np.sum(vl_prd_cls == yvalid) / len(yvalid)))
+
+    # plot importance
+    f_scores = model_1.get_fscore()
+    sorted_f_scores = sorted(f_scores.items(), reverse=True, key=lambda x: x[1])
+    top_f_scores = sorted_f_scores[:30]
+    feature = []
+    f_score = []
+    for i in range(0, len(top_f_scores)):
+        str = top_f_scores[i][0]
+        val = top_f_scores[i][1]
+        feature.append(str)
+        f_score.append(val)
+
+    fig = plt.figure()
+    plt.plot(f_score,feature)
+    plt.title('top 30 features F-scores')
+    plt.xlabel('F-score')
+    plt.ylabel('feature name')
+    fig.tight_layout()
+    fig.savefig('suppervised_feature_importance_sentencesdb.pdf', format='pdf')
+
+    joblib.dump(model, path_to_dumps + "\\xgboost_model.joblib.dat")
+    print("saved xgboost model files:")
+    print(path_to_dumps + "\\xgboost_model.joblib.dat")
 
 
 if __name__ == '__main__':

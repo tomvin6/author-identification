@@ -123,15 +123,21 @@ def get_fasttext_features(xtrain, ytrain, xvalid, yvalid, referance_col='text', 
 
 
 # this methos to be used to save model created on training set, for new row currently not in DB
-def obtain_fasttext_model(xtrain, ytrain, xvalid, yvalid, referance_col='text'):
-    fsx = fasttext.fasttext_classifier()
-    docstrain, tokenizer = create_docs(data=xtrain[referance_col], referance_col=referance_col)
-    fsx.set_tokenizer(tokenizer)
+def obtain_fasttext_model(xtrain, ytrain, xvalid, yvalid, referance_col='text',create_doc=True):
 
-    docstest = create_docs(data=xvalid[referance_col], tokenizer=fsx.tokenizer, train_mode=False,
+    fsx = fasttext.fasttext_classifier()
+
+    if create_doc:
+        docstrain, tokenizer = create_docs(data=xtrain[referance_col], referance_col=referance_col)
+        fsx.set_tokenizer(tokenizer)
+        docstest = create_docs(data=xvalid[referance_col], tokenizer=fsx.tokenizer, train_mode=False,
                            referance_col=referance_col)
+    else:
+        docstrain=xtrain
+        docstest=xvalid
+
     input_dim = np.max(docstrain) + 1
-    fsx.create_model(input_dim)
+    fsx.create_model(input_dim,classes=len(set(ytrain)))
 
     fsx.train(docstrain, ytrain, docstest, yvalid)
     return fsx
