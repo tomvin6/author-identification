@@ -5,12 +5,25 @@ Below you will find documentation on how to run each of the models and what is t
 input params:
 * --file=<path_to_train_data_file>
 * --preprocess=<one of POS, ENT,CLN>
+* --ngram=<int values between 1 to 3>
+
+## Baseline - Dump model
+Classifier based on Logistic regression on top of basic stylometry features as word count, charechters count, etc.
+coded in class suppervised_dumb_baseline.py
+to re-train the classifier, and output log-loss + accuracy simply run 
+```
+python suppervised_dumb_baseline.py
+```
+performance:
+* log-loss = 3.78
+* Accuracy = 0.055
 
 ## Test word count features
 Classifiers based on MultinomialNB on top of "Bag of words" vector (CountVectorizer), with 3-grams.
-coded in class word_count.py
+code in class word_count.py.
+To configure ngram value, use input arg "--ngram=<ngram int value>". default set to 1.
 
-### Baseline - Original text, MultinomialNB
+### Original text, MultinomialNB
 to re-train the classifier, and output log-loss_accuracy simply run 
 ```
 python word_count.py
