@@ -1,8 +1,7 @@
-import gensim
+import pandas as pd
 import os
 from sklearn.base import BaseEstimator, TransformerMixin
-import pandas as pd
-from src.features.writing_style_features import *
+from src.features.writing_style_features import preprocess_text
 
 
 class AverageWordsSelector(BaseEstimator, TransformerMixin):
@@ -23,11 +22,17 @@ class AverageWordsSelector(BaseEstimator, TransformerMixin):
         return pd.DataFrame(self.count.apply(lambda x: (self.mean - x) / (self.max - self.min)))
 
 
+
 class MetaStyleSelector(BaseEstimator, TransformerMixin):
+
+    def __init__(self, name):
+        self.name = name
 
     def fit(self, df):
         return self
 
     def transform(self, df):
-        df = preprocess_text(df)
-        return df
+        if not os.path.isfile(self.name):
+            df = preprocess_text(df)
+            df.to_pickle(self.name)
+        return pd.read_pickle(self.name)

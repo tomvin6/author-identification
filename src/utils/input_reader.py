@@ -25,9 +25,13 @@ def load_data_sets(train_path, test_path, sample_path, encode_lables=True):
     return train_df, test_df, sample_df
 
 
-def load_50_authors_data_sets_to_dict():
+def load_50_authors_data_sets_to_dict(train=True):
     print("Input data: 50 Authors data-set")
-    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
+    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep
+    if train:
+        root += 'C50train'
+    else:
+        root += 'C50test'
     labels = []
     docs = []
     for r, dirs, files in os.walk(root):
