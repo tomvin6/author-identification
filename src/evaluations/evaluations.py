@@ -20,6 +20,7 @@ def multiclass_logloss(actual, predicted, eps=1e-15):
     vsota = np.sum(actual * np.log(clip))
     return -1.0 / rows * vsota
 
+
 def multiclass_logloss_same_shape(actual, predicted, eps=1e-15):
     """Multi class version of Logarithmic Loss metric.
     :param actual: Array containing the actual target classes
@@ -47,3 +48,9 @@ def purity_score(y_true, y_pred):
 
 def normalized_mutual_score(y_true, y_pred):
     return metrics.normalized_mutual_info_score(y_true, y_pred[0])
+
+
+def print_unsupervised_scores(true_labels, cluster_labels):
+    print("unsupervised scores:")
+    print("Purity score: %0.3f" % purity_score(true_labels, cluster_labels))
+    print("Normalize Mutual score: %0.3f" % normalized_mutual_score(true_labels, cluster_labels))
