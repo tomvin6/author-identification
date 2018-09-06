@@ -24,10 +24,10 @@ def avg_word_len(sentence):
 if __name__ == '__main__':
 
     print("baseline_classifiers classifier")
-    print("Algorithm: NB on top of basic metadata features")
+    print("Algorithm: Logistic regression on top of basic metadata features")
     # LOAD DATA
-    # train_df = load_50_auth_data()
-    train_df = load_50_authors_preprocessed_data()
+    train_df = load_50_auth_data()
+    # train_df = load_50_authors_preprocessed_data()
     referance_col = 'text'
     plots = False
     if len(sys.argv) > 1:
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     predictions_classes_lgr = log_reg.predict(xvalid_feat)
     predictions_lgr = log_reg.predict_proba(xvalid_feat)
 
-    print("MultinomialNB measures:")
+    print("Logistic regression measures:")
     print("logloss: %0.3f " % metrics.log_loss(ytest, predictions_lgr))
     print("accuracy: %0.3f" % (np.sum(predictions_classes_lgr == ytest) / len(ytest)))
 

@@ -25,7 +25,7 @@ def preprocess(text):
     return text
 
 
-def create_docs(data, n_gram_max=2, tokenizer=None, train_mode=True, referance_col='text'):
+def create_docs(data, n_gram_max=3, tokenizer=None, train_mode=True, referance_col='text'):
     df = pd.DataFrame(data=data, columns=[referance_col])
     rare_train_words = []
 

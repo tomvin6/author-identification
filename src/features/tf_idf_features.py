@@ -4,10 +4,10 @@ import pandas as pd
 
 # get tf-idf features on a given trainning and validation sets
 # input df's are with a single column on top of ot the tf-idf features will be added
-def get_tfidf_word_features(xtrain, xvalid):
+def get_tfidf_word_features(xtrain, xvalid, ngram=3):
     tfv = TfidfVectorizer(min_df=3, max_features=None,
                           strip_accents='unicode', analyzer='word', token_pattern=r'\w{1,}',
-                          ngram_range=(1, 3), use_idf=1, smooth_idf=1, sublinear_tf=1,
+                          ngram_range=(1, ngram), use_idf=1, smooth_idf=1, sublinear_tf=1,
                           stop_words='english')
     # Fitting TF-IDF to both training and test sets (semi-supervised learning)
     tfv.fit_transform(list(xtrain['text']) + list(xvalid['text']))  # Learn vocabulary and idf from training set.
@@ -17,10 +17,10 @@ def get_tfidf_word_features(xtrain, xvalid):
     return xtrain_tfv, xvalid_tfv
 
 
-def get_tfidf_char_features(xtrain, xvalid):
+def get_tfidf_char_features(xtrain, xvalid,ngram=3):
     tfv = TfidfVectorizer(min_df=3, max_features=None,
                           strip_accents='unicode', analyzer='char', token_pattern=r'\w{1,}',
-                          ngram_range=(1, 3), use_idf=1, smooth_idf=1, sublinear_tf=1,
+                          ngram_range=(1, ngram), use_idf=1, smooth_idf=1, sublinear_tf=1,
                           stop_words='english')
     # Fitting TF-IDF to both training and test sets (semi-supervised learning)
     tfv.fit_transform(list(xtrain['text']) + list(xvalid['text']))  # Learn vocabulary and idf from training set.

@@ -9,7 +9,7 @@ from src.features import tf_idf_features
 
 
 def get_svd_features(xtrain, xtest):
-    svd = decomposition.TruncatedSVD(n_components=120)  # up to 200 features to prevent long execution time...
+    svd = decomposition.TruncatedSVD(n_components=200)  # up to 200 features to prevent long execution time...
     svd.fit(xtrain)
     xtrain_svd = svd.transform(xtrain)
     xvalid_svd = svd.transform(xtest)
@@ -20,9 +20,10 @@ if __name__ == '__main__':
     print("baseline_classifiers classifier")
     print("Algorithm: SVM on top of TF-IDF features, with svd feature reduction")
     # LOAD DATA
-    train_df = load_50_auth_data()
-    # train_df = load_50_authors_preprocessed_data()
-    referance_col = 'text'
+    # train_df = load_50_auth_data()
+    train_df = load_50_authors_preprocessed_data()
+    ngram = 3
+    referance_col = 'text_pos_tag_pairs'
     if len(sys.argv) > 1:
         # command line args
         arg_dict = command_line_args(argv=sys.argv)
@@ -39,7 +40,8 @@ if __name__ == '__main__':
                 referance_col = 'text_with_entities'
             elif arg_dict.get('preprocess') == 'ENT':
                 referance_col = 'text_cleaned'
-
+        if "ngram" in (arg_dict.keys()):
+            ngram = arg_dict.get('ngram')
 
     xtrain, xtest, ytrain, ytest = train_vali_split(train_df)
     xtrain = pd.DataFrame(xtrain[referance_col])
@@ -50,11 +52,11 @@ if __name__ == '__main__':
 
     # TF-IDF features
     print("TF-IDF features")
-    xtrain_tfv, xvalid_tfv = tf_idf_features.get_tfidf_word_features(xtrain, xtest)
+    xtrain_tfv, xvalid_tfv = tf_idf_features.get_tfidf_word_features(xtrain, xtest, ngram)
 
     # Apply SVD, 120-200 components are good enough for SVM model.
     print("SVD features reduction (200 features)")
-    xtrain_svd ,xvalid_svd = get_svd_features(xtrain_tfv, xvalid_tfv)
+    xtrain_svd, xvalid_svd = get_svd_features(xtrain_tfv, xvalid_tfv)
 
     # Scale the data obtained from SVD.
     scl = preprocessing.StandardScaler()
@@ -63,10 +65,10 @@ if __name__ == '__main__':
     xvalid_svd_scl = scl.transform(xvalid_svd)
 
     # Fitting a simple SVM
-    clf = SVC(C=1.0, probability=True)  # since we need probabilities
+    clf = SVC(C=1.0, probability=True)
     clf.fit(xtrain_svd_scl, ytrain)
     predictions = clf.predict_proba(xvalid_svd_scl)
     predictions_classes = clf.predict(xvalid_svd_scl)
 
-    print("logloss: %0.3f " %  metrics.log_loss(ytest, predictions))
+    print("logloss: %0.3f " % metrics.log_loss(ytest, predictions))
     print("business friendly output: %0.3f" % (np.sum(predictions_classes == ytest) / len(ytest)))

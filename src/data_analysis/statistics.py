@@ -17,6 +17,7 @@ import string
 import os.path
 import sys
 
+
 def seperate_entity_types(sentence):
     tokens = sentence.split()
 
@@ -71,16 +72,16 @@ def plot_token_frequencies(author_df, referance_column='text_cleaned2', title_pr
 
     fd.plot(30, title=title)
     fig.savefig(output_path + 'plot_token_frequencies_' + title_prefix + '.pdf', format='pdf')
-    print("common words/entities for author "+ title_prefix+ " saved to "+output_path + 'plot_token_frequencies_' + title_prefix + '.pdf')
+    print(
+        "common words/entities for author " + title_prefix + " saved to " + output_path + 'plot_token_frequencies_' + title_prefix + '.pdf')
     plt.close()
-
 
 
 def plot_multiple_token_frequencies(author_df, output_file_prefix, referance_column='text_cleaned2',
                                     referance_author_column='author'):
     fig = plt.figure()
     # fig.subplots_adjust(hspace=0.4, wspace=0.4,figsize=(15,15))
-    gs1 = gridspec.GridSpec(10,5)
+    gs1 = gridspec.GridSpec(10, 5)
     gs1.tight_layout(fig)
     # fig.set_title('token frequencies, top 30')
     plt_i = 0
@@ -111,7 +112,7 @@ def boxplot_length(author_df, out_folder=''):
     plt.xticks(rotation='vertical', fontsize=5)
     fig.show()
     fig.savefig(out_folder + 'sentence_words_boxplot.pdf', format='pdf')
-    print("boxplot for sentences word count saved to "+out_folder + 'sentence_words_boxplot.pdf')
+    print("boxplot for sentences word count saved to " + out_folder + 'sentence_words_boxplot.pdf')
     plt.close()
 
 
@@ -164,10 +165,11 @@ def plot_author_polarity(author_df, out_folder=''):
 def spooky_author_stats():
     df_train = load_data()
     print(df_train.info())
-    author_bar_plot(df_train)
-
     # remove stop words and punctuations
     preprocess_text(df_train)
+    df_train.to_csv('df_test_50_auth_preprocessed.tsv', sep='\t')
+
+    author_bar_plot(df_train)
 
     df_train['text_cleaned2'] = df_train['text_cleaned'].str.replace('-PRON-', '')
     # plot common words per author
@@ -196,12 +198,13 @@ def spooky_author_stats():
     plot_noun_use(df_train)
     plot_author_polarity(df_train)
 
-#input args: path for external input data
+
+# input args: path for external input data
 if __name__ == '__main__':
-    if len(sys.argv)>1:
+    if len(sys.argv) > 1:
         print("reading from external data file")
         input_data_path = sys.argv[1]
-        df_train=pd.read_csv(input_data_path)
+        df_train = pd.read_csv(input_data_path)
         print("preprocess data")
         preprocess_text(df_train)
     else:
@@ -223,7 +226,8 @@ if __name__ == '__main__':
 
     #  plot common enteties per author
     print("plotting common entities per author:")
-    df_train['entities_types'] = df_train.text_with_entities.apply(seperate_entity_types, "plot_enteties_freq_per_author")
+    df_train['entities_types'] = df_train.text_with_entities.apply(seperate_entity_types,
+                                                                   "plot_enteties_freq_per_author")
     for label in set(df_train['author']):
         df_label = df_train[df_train['author'] == label]
         author_name = label.replace('\\', '')
