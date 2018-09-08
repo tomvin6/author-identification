@@ -40,6 +40,6 @@ python unsupervised-pipeline.py
 ```
 Performance:
 * Purity = 0.53 - 0.54
-* NMI = 0.68-0.70
+* NMI = 0.68-0.702
 
 ![Alt text](screenshots/50_clustersA.JPG?raw=true "Title")
