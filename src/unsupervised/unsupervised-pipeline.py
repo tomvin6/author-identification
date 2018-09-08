@@ -9,12 +9,21 @@ from src.utils.input_reader import *
 import matplotlib.pyplot as plt
 
 # Model parameters
-feature_size = 150  # d2v features
-epochs_number = 22  # d2v features
-number_of_clusters = 50  # clustering
-model_data_name = 'doc2vec_fsize[' + str(feature_size) + ']_clean[' + 'False' + ']_epoch[' + str(
-    epochs_number) + '].model'
+default_number_of_clusters = 50  # clustering
+default_dim_reduction_for_word_ngram = 20
 features = 'text_cleaned'
+
+
+def get_main_parameters(args, drf_clusters, def_word_dim):
+    if len(args) > 1:
+        # command line args
+        arg_dict = command_line_args(argv=sys.argv)
+        if "number_of_clusters" in (arg_dict.keys()):
+            drf_clusters = int(arg_dict.get('number_of_clusters')[0])
+        if "word_ngram_dim_reduction" in (arg_dict.keys()):
+            def_word_dim = int(arg_dict.get('word_ngram_dim_reduction')[0])
+
+    return drf_clusters, def_word_dim
 
 
 if __name__ == '__main__':
@@ -22,6 +31,8 @@ if __name__ == '__main__':
     print("50 readers input")
     print("Features: d2v, average word count, 3 4 5 grams")
 
+    number_of_clusters, word_dim_reduction = get_main_parameters(sys.argv, default_number_of_clusters,
+                                                                 default_dim_reduction_for_word_ngram)
     df = load_50_authors_data_sets_to_dict()
     labels = df['author_label']
 
@@ -33,7 +44,7 @@ if __name__ == '__main__':
                                        strip_accents='unicode', token_pattern=r'\w{1,}',
                                        ngram_range=(1, 3), use_idf=1, smooth_idf=1, sublinear_tf=1,
                                        stop_words='english')),
-                ('svd', TruncatedSVD(n_components=20))
+                ('svd', TruncatedSVD(n_components=word_dim_reduction))
     ])
 
     tf_idf_4_grams = Pipeline([
@@ -43,7 +54,7 @@ if __name__ == '__main__':
                           strip_accents='unicode', token_pattern=r'\w{1,}',
                           ngram_range=(1, 4), use_idf=1, smooth_idf=1, sublinear_tf=1,
                           stop_words='english')),
-                ('svd', TruncatedSVD(n_components=20))
+                ('svd', TruncatedSVD(n_components=word_dim_reduction))
             ])
     tf_idf_5_grams = Pipeline([
                 ('sel', ItemSelector(key='text')),
@@ -51,7 +62,7 @@ if __name__ == '__main__':
                           strip_accents='unicode', token_pattern=r'\w{1,}',
                           ngram_range=(1, 5), use_idf=1, smooth_idf=1, sublinear_tf=1,
                           stop_words='english')),
-                ('svd', TruncatedSVD(n_components=20))
+                ('svd', TruncatedSVD(n_components=word_dim_reduction))
             ])
 
     tf_idf_letters_grams = Pipeline([
@@ -80,7 +91,7 @@ if __name__ == '__main__':
 
     print("Running K-means on combined features \n")
     km = KMeans(number_of_clusters, init='k-means++',
-           max_iter=300, n_init=12, random_state=0)
+           max_iter=350, n_init=30, random_state=0)
     cluster_labels = pd.DataFrame(km.fit_predict(combined_features, y=labels))
 
     print_unsupervised_scores(labels, cluster_labels)

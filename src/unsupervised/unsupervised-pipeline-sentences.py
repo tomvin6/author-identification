@@ -12,8 +12,7 @@ from src.selectors.doc2vec_selector import *
 feature_size = 10  # d2v features
 epochs_number = 22  # d2v features
 number_of_clusters = 50  # clustering
-model_data_name = 'doc2vec_fsize[' + str(feature_size) + ']_clean[' + 'False' + ']_epoch[' + str(
-    epochs_number) + '].model'
+
 
 if __name__ == '__main__':
     print("Pipeline: unsupervised algorithm: with sentence transformation")
@@ -23,10 +22,6 @@ if __name__ == '__main__':
     features = load_50_authors_preprocessed_data()
     labels = original_data['author_label']
     df = features
-    # run doc2vec, transform for 2Dim vector for each document
-    # select each coordinate as a feature for clustering algorithm
-    # doc2vec_pipeline = Pipeline([
-    #                      ("d2v", Doc2VecSelector(model_data_name, feature_size, epochs_number))])
 
     tf_idf_3_grams = Pipeline([
                 ('sel', ItemSelector(key='text')),
@@ -53,19 +48,12 @@ if __name__ == '__main__':
                 ('svd', TruncatedSVD(n_components=30))
             ])
 
-    # average word count feature extraction pipeline
-    word_count_pipeline = Pipeline([
-                         ("word_count", AverageWordsSelector())])
-
     # build vector of combined features
     # additional features should be added to here
     combined_features = FeatureUnion([
-            # ('word_count', word_count_pipeline),
-            # ("d2vA", doc2vec_selectorA),
-            #("d2v", doc2vec_pipeline),
             ("tfidf3", tf_idf_3_grams),
-            #("tfidf4", tf_idf_4_grams),
-            #("tfidf5", tf_idf_5_grams)
+            ("tfidf4", tf_idf_4_grams),
+            ("tfidf5", tf_idf_5_grams)
     ])
 
     print("Running pipelines to calculate model features \n")
@@ -77,12 +65,4 @@ if __name__ == '__main__':
     cluster_labels = pd.DataFrame(km.fit_predict(combined_features, y=labels))
 
     print_unsupervised_scores(labels, cluster_labels)
-
-    import scipy.cluster.hierarchy as hcluster
-
-    # print("Running hc cluster \n")
-    # # clustering
-    # thresh = 1.5
-    # clusters = hcluster.fclusterdata(combined_features, thresh, criterion="distance")
-    # print_unsupervised_scores(labels, clusters)
 
