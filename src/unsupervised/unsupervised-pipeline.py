@@ -39,7 +39,7 @@ if __name__ == '__main__':
     tf_idf_4_grams = Pipeline([
                 ('extract', MetaStyleSelector("style_features_full_text_test_set.pkl")),
                 ('sel', ItemSelector(key=features)),
-                ('tf', TfidfVectorizer(max_features=1000,
+                ('tf', TfidfVectorizer(max_features=950,
                           strip_accents='unicode', token_pattern=r'\w{1,}',
                           ngram_range=(1, 4), use_idf=1, smooth_idf=1, sublinear_tf=1,
                           stop_words='english')),
@@ -54,6 +54,14 @@ if __name__ == '__main__':
                 ('svd', TruncatedSVD(n_components=20))
             ])
 
+    tf_idf_letters_grams = Pipeline([
+                ('sel', ItemSelector(key='text')),
+                ('tf', TfidfVectorizer(max_features=100,
+                          strip_accents='unicode', analyzer='char',
+                          ngram_range=(1, 3))),
+                ('svd', TruncatedSVD(n_components=5))
+            ])
+
     # average word count feature extraction pipeline
     word_count_pipeline = Pipeline([
                          ("word_count", AverageWordsSelector())])
@@ -61,6 +69,7 @@ if __name__ == '__main__':
     # build vector of combined features
     # additional features should be added to here
     combined_features = FeatureUnion([
+            ("tfidf3letter", tf_idf_letters_grams),
             ("tfidf3", tf_idf_3_grams),
             ("tfidf4", tf_idf_4_grams),
             ("tfidf5", tf_idf_5_grams)
@@ -83,7 +92,7 @@ if __name__ == '__main__':
     for i in range(0, number_of_clusters):
         plt.scatter(x_transformed_2D[labels == i][0], x_transformed_2D[labels == i][1], c=np.random.rand(3, ),
                     label='author ' + str(i))
-    plt.title('Sentence plot with DIM reduction (200D -> 2D)')
+    plt.title('Authors clustering with DIM reduction (2D)')
     plt.xlabel('X axis label')
     plt.ylabel('Y axis label')
     plt.legend()
