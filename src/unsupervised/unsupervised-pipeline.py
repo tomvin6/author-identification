@@ -23,7 +23,7 @@ if __name__ == '__main__':
     print("Features: d2v, average word count, 3 4 5 grams")
 
     df = load_50_authors_data_sets_to_dict()
-    labels = df['labels']
+    labels = df['author_label']
 
     # extract features from data set
     tf_idf_3_grams = Pipeline([
@@ -70,9 +70,9 @@ if __name__ == '__main__':
     # additional features should be added to here
     combined_features = FeatureUnion([
             ("tfidf3letter", tf_idf_letters_grams),
-            ("tfidf3", tf_idf_3_grams),
-            ("tfidf4", tf_idf_4_grams),
-            ("tfidf5", tf_idf_5_grams)
+            ("tfidf3word", tf_idf_3_grams),
+            ("tfidf4word", tf_idf_4_grams),
+            ("tfidf5word", tf_idf_5_grams)
     ])
 
     print("Running pipelines to calculate model features \n")
@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     print("Running K-means on combined features \n")
     km = KMeans(number_of_clusters, init='k-means++',
-           max_iter=300, n_init=10, random_state=0)
+           max_iter=300, n_init=12, random_state=0)
     cluster_labels = pd.DataFrame(km.fit_predict(combined_features, y=labels))
 
     print_unsupervised_scores(labels, cluster_labels)
