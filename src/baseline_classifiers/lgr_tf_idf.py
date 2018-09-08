@@ -18,9 +18,10 @@ if __name__ == '__main__':
     print("Features: TF-IDF")
 
     # LOAD DATA
-    train_df = load_50_auth_data()
-    # train_df = load_50_authors_preprocessed_data()
-    referance_col = 'text'
+    # train_df = load_50_auth_data()
+    train_df = load_50_authors_preprocessed_data()
+    referance_col = 'text_cleaned'
+    ngram = 1
     if len(sys.argv) > 1:
         # command line args
         arg_dict = command_line_args(argv=sys.argv)
@@ -37,6 +38,8 @@ if __name__ == '__main__':
                 referance_col = 'text_with_entities'
             elif arg_dict.get('preprocess') == 'CLN':
                 referance_col = 'text_cleaned'
+        if "ngram" in (arg_dict.keys()):
+            ngram = arg_dict.get('ngram')
 
     xtrain, xtest, ytrain, ytest = train_vali_split(train_df)
     xtrain = pd.DataFrame(xtrain[referance_col])
@@ -45,7 +48,7 @@ if __name__ == '__main__':
     xtest = pd.DataFrame(xtest[referance_col])
     xtest = xtest.rename(columns={referance_col: "text"})
 
-    xtrain_tfv, xvalid_tfv = tf_idf_features.get_tfidf_word_features(xtrain, xtest)
+    xtrain_tfv, xvalid_tfv = tf_idf_features.get_tfidf_word_features(xtrain, xtest,ngram)
 
     # Fitting a simple Logistic Regression on TFIDF
     log_reg = LogisticRegression(C=1.0)

@@ -13,9 +13,9 @@ from src.utils.input_reader import *
 # baseline_classifiers classifier
 # Algorithm: Naeive Bayes on bag of words
 # Features: word-count
-def get_wc_feature(xtrain, xtest):
+def get_wc_feature(xtrain, xtest, ngram=1):
     ctv = CountVectorizer(analyzer='word', token_pattern=r'\w{1,}',
-                          ngram_range=(1, 1))
+                          ngram_range=(1, ngram))
 
     ctv.fit(list(xtrain) + list(xtest))
     xtrain_ctv = ctv.transform(xtrain)
@@ -42,10 +42,12 @@ if __name__ == '__main__':
     print("Algorithm: Naeive Bayes on bag of words")
 
     # LOAD DATA
-    train_df = load_50_auth_data()
-    # train_df = load_50_authors_preprocessed_data()
-    referance_col = 'text'
-    plots = False
+    # train_df = load_50_auth_data()
+    train_df = load_50_authors_preprocessed_data()
+    referance_col = 'text_cleaned'
+    # plots = False
+    plots = True
+    ngram = 3
     if len(sys.argv) > 1:
         # command line args
         arg_dict = command_line_args(argv=sys.argv)
@@ -64,6 +66,8 @@ if __name__ == '__main__':
                 referance_col = 'text_cleaned'
         if "plots" in (arg_dict.keys()):
             plots = arg_dict.get('plots')
+        if "ngram" in (arg_dict.keys()):
+            ngram = arg_dict.get('ngram')
 
     xtrain, xtest, ytrain, ytest = train_vali_split(train_df)
     xtrain = pd.DataFrame(xtrain[referance_col])
@@ -73,7 +77,7 @@ if __name__ == '__main__':
     xtest = xtest.rename(columns={referance_col: "text"})
 
     # FEATURE CALCULATION- NB
-    xtrain_ctv, xvalid_ctv = get_wc_feature(xtrain.text.values, xtest.text.values)
+    xtrain_ctv, xvalid_ctv = get_wc_feature(xtrain.text.values, xtest.text.values, ngram)
 
     clfnb = MultinomialNB()
     clfnb.fit(xtrain_ctv, ytrain)
@@ -92,7 +96,7 @@ if __name__ == '__main__':
         np.set_printoptions(precision=2)
         fig = plt.figure()
         plot_confusion_matrix(cnf_matrix, classes=labels,
-                              title='Confusion matrix')
+                              title='Confusion matrix', normalize=True)
         fig.tight_layout()
         fig.savefig('Confusion.pdf', format='pdf')
         plt.close()

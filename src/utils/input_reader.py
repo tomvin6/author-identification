@@ -24,14 +24,18 @@ def load_data_sets(train_path, test_path, sample_path, encode_lables=True):
         train_df['author_label'] = lbl_enc.fit_transform(train_df.author.values)
     return train_df, test_df, sample_df
 
-
+# coluns:
+# text
+# author for author name
+# author label for encoded label
 def load_50_authors_data_sets_to_dict(train=True):
     print("Input data: 50 Authors data-set")
-    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep
     if train:
-        root += 'C50train'
+        print("train- set")
+        root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50train'
     else:
-        root += 'C50test'
+        print("test- set")
+        root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'C50test'
     labels = []
     docs = []
     for r, dirs, files in os.walk(root):
@@ -39,11 +43,11 @@ def load_50_authors_data_sets_to_dict(train=True):
             with open(os.path.join(r, file), "r") as f:
                 docs.append(f.read())
             labels.append(r.replace(root, ''))
-    data_dict = dict([('text', docs), ('labels', labels)])
+    data_dict = dict([('text', docs), ('author', labels)])
     df = pd.DataFrame(data_dict)
     # encode labels
     le = preprocessing.LabelEncoder()
-    df['labels'] = le.fit_transform(df.labels)
+    df['author_label'] = le.fit_transform(df.author)
     df['id'] = df.index
     return df
 

@@ -7,12 +7,14 @@ from src.features.fasttext_features import *
 from src.features.writing_style_features import preprocess_text
 from src.utils.input_reader import command_line_args, load_50_authors_preprocessed_data
 import numpy as np
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     # train_df = load_50_auth_data()
     train_df = load_50_authors_preprocessed_data()
-    referance_col = 'text'
+    referance_col = 'text_pos_tag_pairs'
     plots = False
+    ngram = 1
     if len(sys.argv) > 1:
         # command line args
         arg_dict = command_line_args(argv=sys.argv)
@@ -31,8 +33,10 @@ if __name__ == '__main__':
                 referance_col = 'text_cleaned'
         if "plots" in (arg_dict.keys()):
             plots = arg_dict.get('plots')
+        if "ngram" in (arg_dict.keys()):
+            ngram = arg_dict.get('ngram')
 
-    docs, tokenizer = create_docs(train_df[referance_col])
+    docs, tokenizer = create_docs(train_df[referance_col],referance_col=referance_col,n_gram_max=ngram)
     xtrain, xtest, ytrain, ytest = train_test_split(docs, train_df.author_label, stratify=train_df.author_label,
                                                     random_state=42,
                                                     test_size=0.3, shuffle=True)
@@ -109,3 +113,36 @@ class fasttext_classifier(object):
         predictions = self.model.predict_proba(docstest)
         predictions_classes = self.model.predict_classes(docstest)
         return predictions, predictions_classes
+
+    def plot_train_vs_val(self):
+        hist=self.model.history
+        hist_dict=hist.history
+        #plot loss
+        fig=plt.figure()
+        plt.subplot(211)
+        val_loss=hist_dict.get('val_loss')
+        val_loss_line=plt.plot(val_loss,label='val_loss')
+        plt.legend()
+        loss=hist_dict.get('loss')
+        plt.plot(loss,label='train_loss')
+        plt.legend()
+        plt.title("train and validation loss")
+        plt.ylabel("loss")
+
+        #plot accuracy
+        plt.subplot(212)
+        val_acc=hist_dict.get('val_acc')
+        plt.plot(val_acc, label='val_acc')
+        plt.legend()
+        acc=hist_dict.get('acc')
+        plt.plot(acc, label='train_acc')
+        plt.legend()
+        plt.title("train and validation accuracy")
+        plt.ylabel("accuracy")
+        plt.xlabel("step")
+
+        fig.savefig("fast-text-itr-performance.pdf", format='pdf')
+
+
+
+
