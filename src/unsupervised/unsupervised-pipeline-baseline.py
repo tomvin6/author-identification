@@ -14,7 +14,7 @@ if __name__ == '__main__':
     print('Features: %s' % ', '.join(map(str, features)))
 
     df = load_50_authors_data_sets_to_dict(train=False)
-    labels = df['labels']
+    labels = df['author_label']
 
     # extract features from data set
     feature_extraction_pipeline = Pipeline([
