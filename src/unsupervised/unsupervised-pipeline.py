@@ -11,10 +11,11 @@ import matplotlib.pyplot as plt
 # Model parameters
 default_number_of_clusters = 50  # clustering
 default_dim_reduction_for_word_ngram = 20
+default_draw_clustering_output = True
 features = 'text_cleaned'
 
 
-def get_main_parameters(args, drf_clusters, def_word_dim):
+def get_main_parameters(args, drf_clusters, def_word_dim, def_draw_clus):
     if len(args) > 1:
         # command line args
         arg_dict = command_line_args(argv=sys.argv)
@@ -22,8 +23,10 @@ def get_main_parameters(args, drf_clusters, def_word_dim):
             drf_clusters = int(arg_dict.get('number_of_clusters')[0])
         if "word_ngram_dim_reduction" in (arg_dict.keys()):
             def_word_dim = int(arg_dict.get('word_ngram_dim_reduction')[0])
-
-    return drf_clusters, def_word_dim
+        if "draw_clustering_output" in (arg_dict.keys()):
+            if arg_dict.get('draw_clustering_output') == 'False':
+                def_draw_clus = False
+    return drf_clusters, def_word_dim, def_draw_clus
 
 
 if __name__ == '__main__':
@@ -31,8 +34,9 @@ if __name__ == '__main__':
     print("50 readers input")
     print("Features: d2v, average word count, 3 4 5 grams")
 
-    number_of_clusters, word_dim_reduction = get_main_parameters(sys.argv, default_number_of_clusters,
-                                                                 default_dim_reduction_for_word_ngram)
+    number_of_clusters, word_dim_reduction, is_draw = get_main_parameters(sys.argv, default_number_of_clusters,
+                                                                          default_dim_reduction_for_word_ngram,
+                                                                          default_draw_clustering_output)
     df = load_50_authors_data_sets_to_dict()
     labels = df['author_label']
 
@@ -96,15 +100,16 @@ if __name__ == '__main__':
 
     print_unsupervised_scores(labels, cluster_labels)
 
-    # Plot data in 2D using PCA (DIM reduction):
-    from sklearn.decomposition import PCA as sklearnPCA
-    pca = sklearnPCA(n_components=2)  # 2-dimensional PCA
-    x_transformed_2D = pd.DataFrame(pca.fit_transform(combined_features))
-    for i in range(0, number_of_clusters):
-        plt.scatter(x_transformed_2D[labels == i][0], x_transformed_2D[labels == i][1], c=np.random.rand(3, ),
-                    label='author ' + str(i))
-    plt.title('Authors clustering with DIM reduction (2D)')
-    plt.xlabel('X axis label')
-    plt.ylabel('Y axis label')
-    plt.legend()
-    plt.show()  # need to manually close window
+    if is_draw:
+        # Plot data in 2D using PCA (DIM reduction):
+        from sklearn.decomposition import PCA as sklearnPCA
+        pca = sklearnPCA(n_components=2)  # 2-dimensional PCA
+        x_transformed_2D = pd.DataFrame(pca.fit_transform(combined_features))
+        for i in range(0, number_of_clusters):
+            plt.scatter(x_transformed_2D[labels == i][0], x_transformed_2D[labels == i][1], c=np.random.rand(3, ),
+                        label='author ' + str(i))
+        plt.title('Authors clustering with DIM reduction (2D)')
+        plt.xlabel('X axis label')
+        plt.ylabel('Y axis label')
+        plt.legend()
+        plt.show()  # need to manually close window

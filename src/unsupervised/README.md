@@ -32,13 +32,14 @@ code can be found in class unsupervised-pipeline.py.
 Input params:
 * --number_of_clusters=<int from 1 to 50>
 * --word_ngram_dim_reduction=<int from 1 to 100>
+* --draw_clustering_output=<True / False>
 
-To run the model, and output purity + NMI score, simply execute:
+To run the model, print purity + NMI score, and draw clustering output in 2Dim space, simply execute:
 ```
 python unsupervised-pipeline.py
 ```
-
 Performance:
 * Purity = 0.53 - 0.54
 * NMI = 0.68-0.70
 
+![Alt text](screenshots/50_clustersA.JPG?raw=true "Title")
