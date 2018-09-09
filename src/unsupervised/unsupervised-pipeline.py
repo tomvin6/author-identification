@@ -8,31 +8,18 @@ from src.selectors.item_selector import *
 from src.utils.input_reader import *
 import matplotlib.pyplot as plt
 
-# Model parameters
+# Model default parameters
 default_number_of_clusters = 50  # clustering
 default_dim_reduction_for_word_ngram = 20
 default_draw_clustering_output = True
 features = 'text_cleaned'
 
 
-def get_main_parameters(args, drf_clusters, def_word_dim, def_draw_clus):
-    if len(args) > 1:
-        # command line args
-        arg_dict = command_line_args(argv=sys.argv)
-        if "number_of_clusters" in (arg_dict.keys()):
-            drf_clusters = int(arg_dict.get('number_of_clusters')[0])
-        if "word_ngram_dim_reduction" in (arg_dict.keys()):
-            def_word_dim = int(arg_dict.get('word_ngram_dim_reduction')[0])
-        if "draw_clustering_output" in (arg_dict.keys()):
-            if arg_dict.get('draw_clustering_output') == 'False':
-                def_draw_clus = False
-    return drf_clusters, def_word_dim, def_draw_clus
-
-
 if __name__ == '__main__':
-    print("Pipeline: unsupervised algorithm")
-    print("50 readers input")
-    print("Features: d2v, average word count, 3 4 5 grams")
+    print("Pipeline: Best score unsupervised algorithm")
+    print("Format: Original Messages")
+    print("Input: 50 readers input")
+    print("Features: 3=grams, 4-grams, 5-grams, cleaned text, tf-idf, pca, characters + word data")
 
     number_of_clusters, word_dim_reduction, is_draw = get_main_parameters(sys.argv, default_number_of_clusters,
                                                                           default_dim_reduction_for_word_ngram,
