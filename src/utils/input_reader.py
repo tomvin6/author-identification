@@ -80,9 +80,12 @@ def load_50_authors_data_sentences_to_dict(train=True):
     return df
 
 
-def load_50_authors_preprocessed_data():
+def load_50_authors_preprocessed_data(train=True):
+    if train:
+        root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'df_train_50_auth_preprocessed.tsv'
+    else:
+        root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'df_test_50_auth_preprocessed.tsv'
     print("Input data: 50 Authors data-set")
-    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'df_train_50_auth_preprocessed.tsv'
     df = pd.read_csv(root, sep='\t')
     return df
 
@@ -143,3 +146,17 @@ def command_line_args(argv):
             else:
                 argsdict[arg] = [val]
     return argsdict
+
+
+def get_main_parameters(args, drf_clusters, def_word_dim, def_draw_clus):
+    if len(args) > 1:
+        # command line args
+        arg_dict = command_line_args(argv=sys.argv)
+        if "number_of_clusters" in (arg_dict.keys()):
+            drf_clusters = int(arg_dict.get('number_of_clusters')[0])
+        if "word_ngram_dim_reduction" in (arg_dict.keys()):
+            def_word_dim = int(arg_dict.get('word_ngram_dim_reduction')[0])
+        if "draw_clustering_output" in (arg_dict.keys()):
+            if arg_dict.get('draw_clustering_output') == 'False':
+                def_draw_clus = False
+    return drf_clusters, def_word_dim, def_draw_clus

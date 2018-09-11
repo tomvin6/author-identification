@@ -147,7 +147,7 @@ def preprocess_text(author_df):
 
 
 if __name__ == '__main__':
-    output_file_path = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + "doc_test_50_auth_preprocessed.tsv"
-    author_df = load_50_authors_data_sets_to_dict(train=False)
+    output_file_path = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + "df_test_50_auth_preprocessed.tsv"
+    author_df = load_50_authors_data_sentences_to_dict(train=False)
     preprocess_text(author_df)
     author_df.to_csv(output_file_path, sep='\t')

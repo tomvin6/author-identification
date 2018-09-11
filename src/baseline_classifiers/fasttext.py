@@ -42,7 +42,7 @@ if __name__ == '__main__':
                                                     test_size=0.3, shuffle=True)
 
 
-    fsx = fasttext_features.obtain_fasttext_model(xtrain, ytrain, xtest, ytest, referance_col=referance_col,
+    fsx,tokenizer = fasttext_features.obtain_fasttext_model(xtrain, ytrain, xtest, ytest, referance_col=referance_col,
                                                   create_doc=False)
     predictions, predictions_classes = fsx.predict(ytest)
 
@@ -68,9 +68,6 @@ class fasttext_classifier(object):
         # our vocab indices into embedding_dims dimensions
 
         self.model.add(Embedding(input_dim=input_dim, output_dim=embedding_dims, input_length=256))
-        # self.model.add(Dropout(0.3))
-        # self.model.add(GlobalAveragePooling1D())
-        # self.model.add(Dense(3, activation='softmax'))
 
         self.model.add(Dropout(0.3))
         self.model.add(Conv1D(64,

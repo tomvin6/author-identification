@@ -25,7 +25,7 @@ def preprocess(text):
     return text
 
 
-def create_docs(data, n_gram_max=3, tokenizer=None, train_mode=True, referance_col='text'):
+def create_docs(data, n_gram_max=1, tokenizer=None, train_mode=True, referance_col='text'):
     df = pd.DataFrame(data=data, columns=[referance_col])
     rare_train_words = []
 
@@ -140,7 +140,7 @@ def obtain_fasttext_model(xtrain, ytrain, xvalid, yvalid, referance_col='text',c
     fsx.create_model(input_dim,classes=len(set(ytrain)))
 
     fsx.train(docstrain, ytrain, docstest, yvalid)
-    return fsx
+    return fsx, tokenizer
 
 
 # def get_fasttext_features1(docstrain, ytrain, docsvalid, yvalid, input_dim=0):
