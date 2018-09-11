@@ -147,8 +147,6 @@ performance:
 # Test fast-text features
 To implement fast-text model we used Kares package.
 Classifiers based on MultinomialNB/Logistic Regression on top of TF-IDF features (TfidfVectorizer), with N-grams.
-settings of the model are as follows:
-TBD
 
 ### Original text
 to re-train the classifier, and output log-loss+accuracy simply run
@@ -156,21 +154,29 @@ to re-train the classifier, and output log-loss+accuracy simply run
 python fasttext.py
 ```
 performance:
-* log-loss = 1.722
-* Accuracy = 0.514
+* log-loss = 1.54
+* Accuracy = 0.65
 
 ### POS teggad text
 performance:
-* log-loss = 
-* Accuracy = 
-
-### Entity teggad text
-performance:
-* log-loss = 
-* Accuracy = 
+* log-loss = 1.56
+* Accuracy = 0.65
 
 ### Cleaned text
 performance:
 * log-loss = 
 * Accuracy = 
 
+## GBM, stacked model
+Params:
+--file=<path to external data file>
+--train=<True/False> (will be False if one want to run only classification of the recieved model)
+--preprocess=<True/False>
+--output_path=<path to save output file in case there are any>
+
+```
+python xgboost_stacked_model.py --preprocess=False --train=True
+```
+performance:
+* log-loss = 0.76
+* Accuracy = 0.795
