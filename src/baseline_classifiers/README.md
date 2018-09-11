@@ -169,10 +169,10 @@ performance:
 
 ## GBM, stacked model
 Params:
---file=<path to external data file>
---train=<True/False> (will be False if one want to run only classification of the recieved model)
---preprocess=<True/False>
---output_path=<path to save output file in case there are any>
+* --file=<path to external data file>
+* --train=<True/False> (will be False if one want to run only classification of the recieved model)
+* --preprocess=<True/False>
+* --output_path=<path to save output file in case there are any>
 
 ```
 python xgboost_stacked_model.py --preprocess=False --train=True
