@@ -174,9 +174,19 @@ Params:
 * --preprocess=<True/False>
 * --output_path=<path to save output file in case there are any>
 
+to train all relevant models:
 ```
 python xgboost_stacked_model.py --preprocess=False --train=True
 ```
+trained model files will be under src/baseline_classifiers/xgboost_stacked_sub_mod_dumps
+
+to classify data according to pre-trained models:
+```
+python xgboost_stacked_model.py --preprocess=True --train=False --file=<my_data_file>
+```
+output file with all features probabilities will be in provided output path.
+
+
 performance:
 * log-loss = 0.76
 * Accuracy = 0.795
