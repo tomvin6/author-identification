@@ -26,11 +26,25 @@ To configure ngram value, use input arg "--ngram=<ngram int value>". default set
 ### Original text, MultinomialNB
 to re-train the classifier, and output log-loss_accuracy simply run 
 ```
-python word_count.py
+python word_count.py --ngram=1 
 ```
 performance:
 * log-loss = 1.64
 * Accuracy = 0.69
+
+```
+python word_count.py --ngram=3 
+```
+performance:
+* log-loss = 2.74
+* Accuracy = 0.73
+
+```
+python word_count.py --ngram=3 --preprocessing=CLN
+```
+performance:
+* log-loss = 1.913
+* Accuracy = 0.75
 
 To test performance of classifier on external data, run 
 ```
