@@ -85,6 +85,9 @@ if __name__ == '__main__':
            max_iter=350, n_init=30, random_state=0)
     cluster_labels = pd.DataFrame(km.fit_predict(combined_features, y=labels))
 
+    # writing output to exps folder
+    # cluster_labels.to_csv("../../exps/unsupervised/unsupervised-pipeline.clustering.output")
+
     print_unsupervised_scores(labels, cluster_labels)
 
     if is_draw:

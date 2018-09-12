@@ -24,6 +24,10 @@ python unsupervised-pipeline-sentence.py
 Performance:
 * Purity = 0.113
 * NMI = 0.142
+* Visualizations
+
+<img src="https://github.com/tomvin6/author-identification/blob/master/exps/unsupervised/2d_clustering_sentences.png" width="400" height="400">
+
 ## Best Model
 our best model used original version of dataset, with different set of features including: word n-grams, character n-grams, PCA.
 
@@ -41,5 +45,6 @@ python unsupervised-pipeline.py
 Performance:
 * Purity = 0.53 - 0.54
 * NMI = 0.68-0.702
-
-![Alt text](screenshots/50_clustersA.JPG?raw=true "Title")
+* Visualizations
+   
+![Alt text](../../exps/unsupervised/50_clustersA.JPG?raw=true "model clustering output")
