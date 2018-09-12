@@ -368,7 +368,7 @@ if __name__ == '__main__':
 
     # defule- load 50 authors data as train
     # df = load_50_authors_preprocessed_data()
-    df = load_50_authors_preprocessed_data(train=False)
+    df = load_50_authors_preprocessed_data()
     train_yn = True
     preprocess = False
     output_data_path = "output_predictions_sentences.tsv"

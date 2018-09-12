@@ -80,11 +80,18 @@ def load_50_authors_data_sentences_to_dict(train=True):
     return df
 
 
-def load_50_authors_preprocessed_data(train=True):
-    if train:
-        root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'df_train_50_auth_preprocessed.tsv'
+def load_50_authors_preprocessed_data(train=True, sentences=True):
+
+    root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep
+    if sentences:
+        prefix="df"
     else:
-        root = ".." + os.sep + ".." + os.sep + '50-authors-input' + os.sep + 'df_test_50_auth_preprocessed.tsv'
+        prefix="doc"
+    if train:
+        root = root + prefix+'_train_50_auth_preprocessed.tsv'
+    else:
+        root = root + prefix+'_test_50_auth_preprocessed.tsv'
+
     print("Input data: 50 Authors data-set")
     df = pd.read_csv(root, sep='\t')
     return df
