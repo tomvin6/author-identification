@@ -3,7 +3,8 @@ in this directory, you can find the baslines, tested features and suppervised le
 Below you will find documentation on how to run each of the models and what is their performance.
 
 input params:
-* --file=<path_to_train_data_file>
+* --file=<path_to_train_data_file> 
+* Note: input data should be tab-delimited, with header, including columns 'text' and 'author_label'(int).
 * --preprocess=<one of POS, ENT,CLN>
 * --ngram=<int values between 1 to 3>
 
@@ -80,7 +81,7 @@ Classifiers based on MultinomialNB/Logistic Regression on top of TF-IDF features
 ### Original text, MultinomialNB
 to re-train the classifier, and output log-loss_accuracy simply run
 ```
-python nb_tf_idf.py
+python nb_tf_idf.py --ngram=3
 ```
 performance:
 * log-loss = 2.152 
@@ -94,6 +95,9 @@ Note: input data should be tab-delimited, with header, including columns 'text' 
 
 ### Cleaned text, MultinomialNB
 stop words and panctuations annotated.
+```
+python nb_tf_idf.py --preprocessing=CLN
+```
 performance:
 * log-loss = 1.522 
 * Accuracy = 0.7
@@ -135,51 +139,56 @@ python nb_tf_idf.py --preprocess=ENT --file=<path_to_train_data_file>
 Note: input data should be tab-delimited, with header, including columns 'text' and 'author_label'(int).
 
 ### Original text, Logistic Regression
-replace "nb_tf_idf.py" with "lgr_tf_idf.py" in the above command lines.
+```
+python lgr_tf_idf.py --ngram=3
+```
 performance:
 * log-loss = 1.941  
 * Accuracy = 0.73
 
 ### POS tagged text, Logistic Regression
-replace "nb_tf_idf.py" with "lgr_tf_idf.py" in the above command lines.
+```
+python lgr_tf_idf.py --ngram=3 --preprocessing=POS
+```
 performance:
 * log-loss = 2.240  
 * Accuracy = 0.72
 
 ### Entity tagged text, Logistic Regression
-replace "nb_tf_idf.py" with "lgr_tf_idf.py" in the above command lines.
+```
+python lgr_tf_idf.py --preprocessing=ENT
+```
 performance:
 * log-loss = 2.400  
 * Accuracy = 0.6
 
 ###  Original text,SVM
-replace to "svm_tfidf.py" in the above command lines.
+```
+python svm_tfidf.py --ngram=3
+```
 performance:
 * log-loss = 1.722
 * Accuracy = 0.514
 
-# Test fast-text features
-To implement fast-text model we used Kares package.
-Classifiers based on MultinomialNB/Logistic Regression on top of TF-IDF features (TfidfVectorizer), with N-grams.
+# Test CNN
+To implement CNN model we used Kares package.
 
 ### Original text
 to re-train the classifier, and output log-loss+accuracy simply run
 ```
-python fasttext.py
+python fasttext.py 
 ```
 performance:
 * log-loss = 1.54
 * Accuracy = 0.65
 
 ### POS teggad text
+```
+python fasttext.py --preprocessing=POS
+```
 performance:
 * log-loss = 1.56
 * Accuracy = 0.65
-
-### Cleaned text
-performance:
-* log-loss = 
-* Accuracy = 
 
 ## GBM, stacked model
 Params:
@@ -188,11 +197,15 @@ Params:
 * --preprocess=<True/False>
 * --output_path=<path to save output file in case there are any>
 
-to train all relevant models:
+to train all relevant models (according to 50 authors data splitted to sentences):
 ```
 python xgboost_stacked_model.py --preprocess=False --train=True
 ```
-trained model files will be under src/baseline_classifiers/xgboost_stacked_sub_mod_dumps
+trained model files will be outputed to derectory src/baseline_classifiers/xgboost_stacked_sub_mod_dumps
+
+performance:
+* log-loss = 0.76
+* Accuracy = 0.795
 
 to classify data according to pre-trained models:
 ```
@@ -200,7 +213,3 @@ python xgboost_stacked_model.py --preprocess=True --train=False --file=<my_data_
 ```
 output file with all features probabilities will be in provided output path.
 
-
-performance:
-* log-loss = 0.76
-* Accuracy = 0.795
