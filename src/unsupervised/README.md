@@ -26,7 +26,7 @@ Performance:
 * NMI = 0.142
 * Visualizations
 
-![Alt text](../../exps/unsupervised/2d_clustering_sentences.png?raw=true "sentences output")
+![](../../exps/unsupervised/2d_clustering_sentences.png?raw=true&s=100 "sentences output")
 ## Best Model
 our best model used original version of dataset, with different set of features including: word n-grams, character n-grams, PCA.
 
