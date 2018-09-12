@@ -42,4 +42,6 @@ Performance:
 * Purity = 0.53 - 0.54
 * NMI = 0.68-0.702
 
-![Alt text](screenshots/50_clustersA.JPG?raw=true "Title")
+
+![Alt text](exps/unsupervised/50_clustersA.JPG?raw=true "Title")
+![Alt text](exps/unsupervised/dantogram.png?raw=true "Title")
