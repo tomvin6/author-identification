@@ -26,9 +26,8 @@ Performance:
 * NMI = 0.142
 * Visualizations
 
-<img src="https://github.com/tomvin6/author-identification/blob/master/exps/unsupervised/2d_clustering_sentences.png" width="100" height="100">
+<img src="https://github.com/tomvin6/author-identification/blob/master/exps/unsupervised/2d_clustering_sentences.png" width="400" height="400">
 
-![](../../exps/unsupervised/2d_clustering_sentences.png?v=4&s=50 "sentences output")
 ## Best Model
 our best model used original version of dataset, with different set of features including: word n-grams, character n-grams, PCA.
 
