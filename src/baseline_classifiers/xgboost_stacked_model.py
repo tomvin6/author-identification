@@ -5,14 +5,14 @@ from keras.models import load_model
 from sklearn.externals import joblib
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-# import xgboost as xgb
 from sklearn.naive_bayes import MultinomialNB
 
 from src.baseline_classifiers.svm_tfidf import *
 from src.features import fasttext_features
 from src.features import probability_features
 from src.features.writing_style_features import *
-
+from src.utils.confusion import *
+import pandas as pd
 nltk.download('maxent_ne_chunker')
 from src.features.santimant_features import *
 import matplotlib.pyplot as plt
@@ -37,7 +37,7 @@ def get_features_for_text(text_df, preprocess=True):
     X = loaded_vec.transform(text_df_processed['text'])
     clf = joblib.load(root + "\\nb_orig_txt_ctv.pkl")
     prob_predictions = clf.predict_proba(X)
-    for i in range(len(set(clf.predict(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['nb_orig_txt_ctv' + str(i)] = prob_predictions[:, i]
 
     tfidftransformer = TfidfTransformer()
@@ -46,7 +46,7 @@ def get_features_for_text(text_df, preprocess=True):
     X = tfidftransformer.fit_transform(loaded_vec.fit_transform(text_df_processed['text']))
     clf = joblib.load(root + "\\nb_orig_txt_char_tfidf.pkl")
     prob_predictions = clf.predict_proba(X)
-    for i in range(len(set(clf.predict(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['nb_orig_txt_char_tfidf' + str(i)] = prob_predictions[:, i]
 
     print("2. on lematized text")
@@ -57,7 +57,7 @@ def get_features_for_text(text_df, preprocess=True):
     X = tfidftransformer.fit_transform(loaded_vec.fit_transform(text_df_processed['text_cleaned']))
     clf = joblib.load(root + "\\nb_txtcleaned_wrd_tfidf.pkl")
     prob_predictions = clf.predict_proba(X)
-    for i in range(len(set(clf.predict(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['nb_txtcleaned_wrd_tfidf' + str(i)] = prob_predictions[:, i]
 
     print("3. on entity annotated text")
@@ -66,7 +66,7 @@ def get_features_for_text(text_df, preprocess=True):
     X = loaded_vec.transform(text_df_processed['text_with_entities'])
     clf = joblib.load(root + "\\nb_txtent_ctv.pkl")
     prob_predictions = clf.predict_proba(X)
-    for i in range(len(set(clf.predict(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['nb_txtent_ctv' + str(i)] = prob_predictions[:, i]
 
     print("4. on pos-tagged text")
@@ -75,7 +75,7 @@ def get_features_for_text(text_df, preprocess=True):
     X = loaded_vec.transform(text_df_processed['text_pos_tag_pairs'])
     clf = joblib.load(root + "\\nb_txtpos_ctv.pkl")
     prob_predictions = clf.predict_proba(X)
-    for i in range(len(set(clf.predict(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['nb_txtpos_ctv' + str(i)] = prob_predictions[:, i]
 
     print("finished stacked features additions!")
@@ -87,7 +87,7 @@ def get_features_for_text(text_df, preprocess=True):
                                       referance_col='text')
     fsx = load_model(root + "\\fsx_orgtxt_.h5")
     prob_predictions = fsx.predict_proba(X)
-    for i in range(len(set(fsx.predict_classes(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['fsx_orgtxt_' + str(i)] = prob_predictions[:, i]
 
     print("2. on lematized text")
@@ -96,7 +96,7 @@ def get_features_for_text(text_df, preprocess=True):
                                       tokenizer=loaded_tokenizer, referance_col='text_cleaned')
     fsx = load_model(root + "\\fsx_cleanedtxt_.h5")
     prob_predictions = fsx.predict_proba(X)
-    for i in range(len(set(fsx.predict_classes(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['fsx_cleanedtxt_' + str(i)] = prob_predictions[:, i]
 
     print("3. on entity annotated text")
@@ -106,7 +106,7 @@ def get_features_for_text(text_df, preprocess=True):
                                       referance_col='text_with_entities')
     fsx = load_model(root + "\\fsx_enttxt_.h5")
     prob_predictions = fsx.predict_proba(X)
-    for i in range(len(set(fsx.predict_classes(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['fsx_enttxt_' + str(i)] = prob_predictions[:, i]
 
     print("4. on pos-tagged text")
@@ -116,21 +116,25 @@ def get_features_for_text(text_df, preprocess=True):
                                       referance_col='text_pos_tag_pairs')
     fsx = load_model(root + "\\fsx_postxt_.h5")
     prob_predictions = fsx.predict_proba(X)
-    for i in range(len(set(fsx.predict_classes(X)))):
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['fsx_postxt_' + str(i)] = prob_predictions[:, i]
 
     print("fast-text features added!")
-    drop = ['text', 'text_cleaned', 'text_with_entities', 'text_pos_tag_pairs']
+    drop = ['text', 'text_cleaned', 'text_with_entities', 'text_pos_tag_pairs', 'idx', 'author', 'author_label', 'id']
     text_df_processed = text_df_processed.drop(drop, axis=1)
 
     print("adding gbm answer for data")
-    cls = load_model(root + "\\xgboost_model.joblib.dat")
-    prob_predictions = cls.predict(text_df_processed)
-    for i in range(len(set(fsx.predict_classes(X)))):
+    cls = joblib.load(root + "\\xgboost_model.h5")
+    mtx_text_df_processed = xgb.DMatrix(text_df_processed)
+    prob_predictions = cls.predict(mtx_text_df_processed)
+    for i in range(prob_predictions.shape[1]):
         text_df_processed['xgboost_' + str(i)] = prob_predictions[:, i]
+    xgb_ans = pd.DataFrame()
+    for i in range(prob_predictions.shape[1]):
+        xgb_ans['xgboost_' + str(i)] = prob_predictions[:, i]
 
     print("gbm answers added!")
-    return text_df_processed
+    return text_df_processed, xgb_ans
 
 
 def train(train_df=None, preprocess=True, sentences=True):
@@ -337,9 +341,19 @@ def train(train_df=None, preprocess=True, sentences=True):
     fig.tight_layout()
     fig.savefig('suppervised_feature_importance_sentencesdb.pdf', format='pdf')
 
-    joblib.dump(model_1, path_to_dumps + "\\xgboost_model.joblib.dat")
+    joblib.dump(model_1, path_to_dumps + "\\xgboost_model.h5")
     print("saved xgboost model files:")
-    print(path_to_dumps + "\\xgboost_model.joblib.dat")
+    print(path_to_dumps + "\\xgboost_model.h5")
+
+    # plot confusion matrix
+    labels = list(set(ytrain))
+    cnf_matrix = confusion_matrix(yvalid, vl_prd_cls)
+    np.set_printoptions(precision=2)
+    fig = plt.figure()
+    plot_confusion_matrix(cnf_matrix, classes=labels,
+                          title='Confusion matrix', normalize=True)
+    fig.tight_layout()
+    fig.savefig('confusion_xgboost.pdf', format='pdf')
 
 
 if __name__ == '__main__':
@@ -353,7 +367,8 @@ if __name__ == '__main__':
     # train(preprocess=False)
 
     # defule- load 50 authors data as train
-    df = load_50_authors_preprocessed_data()
+    # df = load_50_authors_preprocessed_data()
+    df = load_50_authors_preprocessed_data(train=False)
     train_yn = True
     preprocess = False
     output_data_path = "output_predictions_sentences.tsv"
@@ -388,5 +403,5 @@ if __name__ == '__main__':
     if train_yn:
         train(df)
     else:
-        feat_df = get_features_for_text(df, preprocess=preprocess)
+        feat_df,xgb_ans = get_features_for_text(df, preprocess=preprocess)
         feat_df.to_csv(output_data_path, sep='\t')
