@@ -19,16 +19,16 @@ import matplotlib.pyplot as plt
 
 # text to be processes should be under 'text column
 path_to_dumps = "xgboost_stacked_sub_mod_dumps"
-root = ".." + os.sep + ".." + os.sep + 'src' + os.sep +'baseline_classifiers'+os.sep+path_to_dumps
+root = ".." + os.sep + ".." + os.sep + 'src' + os.sep + 'baseline_classifiers' + os.sep + path_to_dumps
 
-def get_features_for_text(text_df,preprocess=True):
+
+def get_features_for_text(text_df, preprocess=True):
     if preprocess:
         print("pre-process text...")
         text_df_processed = preprocess_text(pd.DataFrame(text_df, columns=['text']))
         print("finished pre-process!")
     else:
-        text_df_processed=text_df
-
+        text_df_processed = text_df
 
     print("adding stacked features...")
     print("1. on original text")
@@ -120,31 +120,42 @@ def get_features_for_text(text_df,preprocess=True):
         text_df_processed['fsx_postxt_' + str(i)] = prob_predictions[:, i]
 
     print("fast-text features added!")
-
     drop = ['text', 'text_cleaned', 'text_with_entities', 'text_pos_tag_pairs']
     text_df_processed = text_df_processed.drop(drop, axis=1)
+
+    print("adding gbm answer for data")
+    cls = load_model(root + "\\xgboost_model.joblib.dat")
+    prob_predictions = cls.predict(text_df_processed)
+    for i in range(len(set(fsx.predict_classes(X)))):
+        text_df_processed['xgboost_' + str(i)] = prob_predictions[:, i]
+
+    print("gbm answers added!")
     return text_df_processed
 
 
-def train(train_df=None, preprocess=True):
+def train(train_df=None, preprocess=True, sentences=True):
     print("trainng xgb model with stacked features")
 
-    if preprocess:
-        print("Load data...")
-        # path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
-        # train_df, test_df, sample_df = load_data_sets(path_prefix + "train_short.csv", path_prefix + "test_short.csv", None)
-        train_df = load_50_authors_data_sentences_to_dict()
-        xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
-        print("data loaded!")
-        print("pre-process text...")
-        xtrain_processed = preprocess_text(pd.DataFrame(xtrain, columns=['text']))
-        xvalid_processed = preprocess_text(pd.DataFrame(xvalid, columns=['text']))
-        print("finished pre-process!")
-    else:
-        print("loading pre-process text...")
-        xtrain_processed_df = load_50_authors_preprocessed_data()
-        xtrain_processed, xvalid_processed, ytrain, yvalid = train_vali_split(xtrain_processed_df)
+    # if preprocess:
+    #     print("Load data...")
+    #     # path_prefix = ".." + os.sep + ".." + os.sep + "input" + os.sep
+    #     # train_df, test_df, sample_df = load_data_sets(path_prefix + "train_short.csv", path_prefix + "test_short.csv", None)
+    #     if sentences:
+    #         train_df = load_50_authors_data_sentences_to_dict()
+    #     else:
+    #         train_df= load_50_authors_data_sets_to_dict()
+    #     xtrain, xvalid, ytrain, yvalid = train_vali_split(train_df)
+    #     print("data loaded!")
+    #     print("pre-process text...")
+    #     xtrain_processed = preprocess_text(pd.DataFrame(xtrain, columns=['text']))
+    #     xvalid_processed = preprocess_text(pd.DataFrame(xvalid, columns=['text']))
+    #     print("finished pre-process!")
+    # else:
+    #     print("loading pre-process text...")
+    #     xtrain_processed_df = load_50_authors_preprocessed_data(sentences)
+    #     xtrain_processed, xvalid_processed, ytrain, yvalid = train_vali_split(xtrain_processed_df)
 
+    xtrain_processed, xvalid_processed, ytrain, yvalid = train_vali_split(train_df)
     xtrain_processed = xtrain_processed.reset_index(drop=True)
     xvalid_processed = xvalid_processed.reset_index(drop=True)
 
@@ -326,15 +337,56 @@ def train(train_df=None, preprocess=True):
     fig.tight_layout()
     fig.savefig('suppervised_feature_importance_sentencesdb.pdf', format='pdf')
 
-    joblib.dump(model, path_to_dumps + "\\xgboost_model.joblib.dat")
+    joblib.dump(model_1, path_to_dumps + "\\xgboost_model.joblib.dat")
     print("saved xgboost model files:")
     print(path_to_dumps + "\\xgboost_model.joblib.dat")
 
 
 if __name__ == '__main__':
     # print("get features for C50test data")
-    test_df = load_50_authors_data_sentences_to_dict(train=False)
+    # test_df = load_50_authors_preprocessed_data(train=False)
     # get_features_for_text(test_df)
+    print("baseline_classifiers xgboost stacked classifier")
+    print("Algorithm: GBM on top of multiple features")
 
-    print("train xgboost model")
-    train(preprocess=False)
+    # print("train xgboost model")
+    # train(preprocess=False)
+
+    # defule- load 50 authors data as train
+    df = load_50_authors_preprocessed_data()
+    train_yn = True
+    preprocess = False
+    output_data_path = "output_predictions_sentences.tsv"
+
+    if len(sys.argv) > 1:
+        # command line args
+        arg_dict = command_line_args(argv=sys.argv)
+        if "file" in (arg_dict.keys()):
+            input_data_path = str(arg_dict.get('file')[0])
+            print("reading from external data file:" + input_data_path)
+            df = pd.read_csv(input_data_path)
+        if "output_file" in (arg_dict.keys()):
+            output_data_path = str(arg_dict.get('output_file')[0])
+            print("output data file:" + output_data_path)
+        if "train" in (arg_dict.keys()):
+            train_yn = arg_dict.get('train')[0]
+            if train_yn == 'False':
+                train_yn = False
+            else:
+                train_yn = True
+            print("train mode:" + str(train_yn))
+        if "preprocess" in (arg_dict.keys()):
+            preprocess = arg_dict.get('preprocess')[0]
+            if preprocess == 'False':
+                preprocess = False
+            else:
+                preprocess = True
+
+    if preprocess:
+        df = preprocess_text(df)
+
+    if train_yn:
+        train(df)
+    else:
+        feat_df = get_features_for_text(df, preprocess=preprocess)
+        feat_df.to_csv(output_data_path, sep='\t')

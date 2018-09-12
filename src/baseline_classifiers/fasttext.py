@@ -20,30 +20,29 @@ if __name__ == '__main__':
         arg_dict = command_line_args(argv=sys.argv)
 
         if "file" in (arg_dict.keys()):
-            input_data_path = arg_dict.get('file')
+            input_data_path = str(arg_dict.get('file')[0])
             print("reading from external data file:" + input_data_path)
             df_train = pd.read_csv(input_data_path)
         if "preprocess" in (arg_dict.keys()):
             df_train = preprocess_text(df_train)
-            if arg_dict.get('preprocess') == 'POS':
+            if str(arg_dict.get('preprocess')[0]) == 'POS':
                 referance_col = 'text_pos_tag_pairs'
-            elif arg_dict.get('preprocess') == 'ENT':
+            elif str(arg_dict.get('preprocess')[0]) == 'ENT':
                 referance_col = 'text_with_entities'
-            elif arg_dict.get('preprocess') == 'CLN':
+            elif str(arg_dict.get('preprocess')[0]) == 'CLN':
                 referance_col = 'text_cleaned'
         if "plots" in (arg_dict.keys()):
-            plots = arg_dict.get('plots')
+            plots = str(arg_dict.get('plots')[0])
         if "ngram" in (arg_dict.keys()):
-            ngram = arg_dict.get('ngram')
+            ngram = int(arg_dict.get('ngram')[0])
 
-    docs, tokenizer = create_docs(train_df[referance_col],referance_col=referance_col,n_gram_max=ngram)
+    docs, tokenizer = create_docs(train_df[referance_col], referance_col=referance_col, n_gram_max=ngram)
     xtrain, xtest, ytrain, ytest = train_test_split(docs, train_df.author_label, stratify=train_df.author_label,
                                                     random_state=42,
                                                     test_size=0.3, shuffle=True)
 
-
-    fsx,tokenizer = fasttext_features.obtain_fasttext_model(xtrain, ytrain, xtest, ytest, referance_col=referance_col,
-                                                  create_doc=False)
+    fsx, tokenizer = fasttext_features.obtain_fasttext_model(xtrain, ytrain, xtest, ytest, referance_col=referance_col,
+                                                             create_doc=False)
     predictions, predictions_classes = fsx.predict(ytest)
 
     print("logloss: %0.3f " % metrics.log_loss(ytest, predictions))
@@ -112,26 +111,26 @@ class fasttext_classifier(object):
         return predictions, predictions_classes
 
     def plot_train_vs_val(self):
-        hist=self.model.history
-        hist_dict=hist.history
-        #plot loss
-        fig=plt.figure()
+        hist = self.model.history
+        hist_dict = hist.history
+        # plot loss
+        fig = plt.figure()
         plt.subplot(211)
-        val_loss=hist_dict.get('val_loss')
-        val_loss_line=plt.plot(val_loss,label='val_loss')
+        val_loss = hist_dict.get('val_loss')
+        val_loss_line = plt.plot(val_loss, label='val_loss')
         plt.legend()
-        loss=hist_dict.get('loss')
-        plt.plot(loss,label='train_loss')
+        loss = hist_dict.get('loss')
+        plt.plot(loss, label='train_loss')
         plt.legend()
         plt.title("train and validation loss")
         plt.ylabel("loss")
 
-        #plot accuracy
+        # plot accuracy
         plt.subplot(212)
-        val_acc=hist_dict.get('val_acc')
+        val_acc = hist_dict.get('val_acc')
         plt.plot(val_acc, label='val_acc')
         plt.legend()
-        acc=hist_dict.get('acc')
+        acc = hist_dict.get('acc')
         plt.plot(acc, label='train_acc')
         plt.legend()
         plt.title("train and validation accuracy")
@@ -139,7 +138,3 @@ class fasttext_classifier(object):
         plt.xlabel("step")
 
         fig.savefig("fast-text-itr-performance.pdf", format='pdf')
-
-
-
-

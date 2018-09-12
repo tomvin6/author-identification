@@ -44,30 +44,30 @@ if __name__ == '__main__':
     # LOAD DATA
     # train_df = load_50_auth_data()
     train_df = load_50_authors_preprocessed_data()
-    referance_col = 'text_cleaned'
-    # plots = False
-    plots = True
+    referance_col = 'text'
+    plots = False
+    # plots = True
     ngram = 3
     if len(sys.argv) > 1:
         # command line args
         arg_dict = command_line_args(argv=sys.argv)
 
         if "file" in (arg_dict.keys()):
-            input_data_path = arg_dict.get('file')
+            input_data_path = str(arg_dict.get('file')[0])
             print("reading from external data file:" + input_data_path)
             df_train = pd.read_csv(input_data_path)
         if "preprocess" in (arg_dict.keys()):
             df_train = preprocess_text(df_train)
-            if arg_dict.get('preprocess') == 'POS':
+            if str(arg_dict.get('preprocess')[0]) == 'POS':
                 referance_col = 'text_pos_tag_pairs'
-            elif arg_dict.get('preprocess') == 'ENT':
+            elif str(arg_dict.get('preprocess')[0]) == 'ENT':
                 referance_col = 'text_with_entities'
-            elif arg_dict.get('preprocess') == 'CLN':
+            elif str(arg_dict.get('preprocess')[0]) == 'CLN':
                 referance_col = 'text_cleaned'
-        if "plots" in (arg_dict.keys()):
-            plots = arg_dict.get('plots')
         if "ngram" in (arg_dict.keys()):
-            ngram = arg_dict.get('ngram')
+            ngram = int(arg_dict.get('ngram')[0])
+        if "plots" in (arg_dict.keys()):
+            plots = arg_dict.get('plots')[0]
 
     xtrain, xtest, ytrain, ytest = train_vali_split(train_df)
     xtrain = pd.DataFrame(xtrain[referance_col])
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     print("logloss: %0.3f " % metrics.log_loss(ytest, predictions_nb))
     print("accuracy: %0.3f" % (np.sum(predictions_classes_nb == ytest) / len(ytest)))
 
-    if plots:
+    if plots == 'True':
         print("saving plots and outputs")
         # Compute and plot confusion matrix
         labels = list(set(train_df.author))
