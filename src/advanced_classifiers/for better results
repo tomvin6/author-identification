@@ -1,3 +1,0 @@
-1. do not remove stop words from curpos
-2. explicitly turn of "lowercase" property for all analyzers!
-    (in count vectorizer, tfidf)
